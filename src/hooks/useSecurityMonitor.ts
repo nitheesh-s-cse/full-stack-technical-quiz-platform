@@ -52,7 +52,7 @@ export function useSecurityMonitor({ enabled, round, getCurrentQuestionId, onSer
 
     const onContextMenu = (e: MouseEvent) => {
       e.preventDefault();
-      report("RIGHT_CLICK");
+      // Right-click is prevented to disable context menu, but is NOT considered or reported as malpractice.
     };
 
     const onCopy = (e: ClipboardEvent) => {

@@ -1,13 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { Circle, ShieldOff, ShieldCheck, RotateCcw, Award, Eye } from "lucide-react";
+import { Circle, ShieldOff, ShieldCheck, RotateCcw, Award, Eye, Pencil } from "lucide-react";
 
 export type AdminTeamRow = {
   id: number;
   teamCode: string;
   teamName: string;
   members: string[];
+  member1Name?: string | null;
+  member2Name?: string | null;
+  member3Name?: string | null;
+  member4Name?: string | null;
   collegeDept: string | null;
   teamStatus: string;
   qualifiedForRound2: boolean;
@@ -51,12 +55,14 @@ export default function TeamsTable({
   onQualify,
   onResetSession,
   onReinstate,
+  onEdit,
 }: {
   teams: AdminTeamRow[];
   onTerminate: (id: number) => void;
   onQualify: (id: number, qualified: boolean) => void;
   onResetSession: (id: number) => void;
   onReinstate?: (team: AdminTeamRow) => void;
+  onEdit?: (team: AdminTeamRow) => void;
 }) {
   return (
     <div className="overflow-x-auto rounded-2xl border border-slate-800">
@@ -118,6 +124,13 @@ export default function TeamsTable({
                     <Link href={`/admin/teams/${t.id}`} title="View details" className="rounded-md border border-slate-700 p-1.5 hover:border-slate-500">
                       <Eye className="h-3.5 w-3.5" />
                     </Link>
+                    <button
+                      title="Edit team details"
+                      onClick={() => onEdit?.(t)}
+                      className="rounded-md border border-slate-700 p-1.5 text-slate-400 hover:border-slate-500 hover:text-sky-300"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </button>
                     <button
                       title="Toggle Round 2 qualification"
                       onClick={() => onQualify(t.id, !t.qualifiedForRound2)}

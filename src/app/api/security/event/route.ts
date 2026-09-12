@@ -28,6 +28,10 @@ export async function POST(req: NextRequest) {
     ? (body.eventType as (typeof MALPRACTICE_EVENT_TYPES)[number])
     : "OTHER";
 
+  if (eventType === "RIGHT_CLICK") {
+    return NextResponse.json({ malpracticeCount: team.malpracticeCount, terminated: false });
+  }
+
   if (team.teamStatus === "TERMINATED" || team.teamStatus === "DISQUALIFIED") {
     return NextResponse.json({ malpracticeCount: team.malpracticeCount, terminated: true });
   }

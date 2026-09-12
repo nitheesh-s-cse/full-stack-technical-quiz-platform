@@ -9,6 +9,7 @@ import SettingsPanel, { type Settings } from "@/components/admin/SettingsPanel";
 import LeaderboardPanel from "@/components/admin/LeaderboardPanel";
 import QuestionsPanel from "@/components/admin/QuestionsPanel";
 import CreateTeamModal from "@/components/admin/CreateTeamModal";
+import EditTeamModal, { type EditTeamTarget } from "@/components/admin/EditTeamModal";
 import ReinstateModal, { type ReinstateTarget } from "@/components/admin/ReinstateModal";
 import type { LiveEvent } from "@/lib/events";
 
@@ -22,6 +23,7 @@ export default function AdminDashboardPage() {
   const [events, setEvents] = useState<LiveEvent[]>([]);
   const [tab, setTab] = useState<Tab>("teams");
   const [showCreate, setShowCreate] = useState(false);
+  const [editTarget, setEditTarget] = useState<EditTeamTarget | null>(null);
   const [reinstateTarget, setReinstateTarget] = useState<ReinstateTarget | null>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
 
@@ -181,6 +183,7 @@ export default function AdminDashboardPage() {
                 onTerminate={handleTerminate}
                 onQualify={handleQualify}
                 onResetSession={handleResetSession}
+                onEdit={(t) => setEditTarget(t)}
                 onReinstate={(t) =>
                   setReinstateTarget({
                     id: t.id,
@@ -192,7 +195,16 @@ export default function AdminDashboardPage() {
               />
             )}
             {tab === "leaderboard" && <LeaderboardPanel />}
-            {tab === "settings" && settings && <SettingsPanel settings={settings} onSave={saveSettings} />}
+            {tab === "settings" && settings && (
+              <SettingsPanel
+                settings={settings}
+                onSave={saveSettings}
+                onReset={() => {
+                  loadTeams();
+                  loadSettings();
+                }}
+              />
+            )}
             {tab === "questions" && <QuestionsPanel />}
           </div>
           <AlertsFeed events={events} />
@@ -200,6 +212,13 @@ export default function AdminDashboardPage() {
       </div>
 
       {showCreate && <CreateTeamModal onClose={() => setShowCreate(false)} onCreated={loadTeams} />}
+      {editTarget && (
+        <EditTeamModal
+          team={editTarget}
+          onClose={() => setEditTarget(null)}
+          onSaved={loadTeams}
+        />
+      )}
       {reinstateTarget && (
         <ReinstateModal
           target={reinstateTarget}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Save, Power } from "lucide-react";
+import { Save, Power, RotateCcw, AlertTriangle, X } from "lucide-react";
 
 export type Settings = {
   round1Enabled: boolean;
@@ -15,13 +15,20 @@ export type Settings = {
 export default function SettingsPanel({
   settings,
   onSave,
+  onReset,
 }: {
   settings: Settings;
   onSave: (patch: Partial<Settings>) => Promise<void>;
+  onReset?: () => void;
 }) {
   const [local, setLocal] = useState(settings);
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<number | null>(null);
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [resetConfirmInput, setResetConfirmInput] = useState("");
+  const [resetting, setResetting] = useState(false);
+  const [resetError, setResetError] = useState<string | null>(null);
+  const [resetSuccess, setResetSuccess] = useState(false);
 
   async function save(patch: Partial<Settings>) {
     setSaving(true);
@@ -30,6 +37,32 @@ export default function SettingsPanel({
     await onSave(patch);
     setSaving(false);
     setSavedAt(Date.now());
+  }
+
+  async function handleResetGame() {
+    if (resetConfirmInput.trim().toUpperCase() !== "RESET") {
+      setResetError("Please type RESET to confirm.");
+      return;
+    }
+    setResetting(true);
+    setResetError(null);
+    try {
+      const res = await fetch("/api/admin/reset-game", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) {
+        setResetError(data.error ?? "Failed to reset game.");
+        return;
+      }
+      setLocal((prev) => ({ ...prev, round1Enabled: false, round2Enabled: false, tieBreakerEnabled: false }));
+      setResetSuccess(true);
+      setShowResetModal(false);
+      setResetConfirmInput("");
+      onReset?.();
+    } catch {
+      setResetError("Network error while resetting competition.");
+    } finally {
+      setResetting(false);
+    }
   }
 
   return (
@@ -83,8 +116,99 @@ export default function SettingsPanel({
         </div>
       </div>
 
+      {/* Danger Zone: Full Game Reset */}
+      <div className="rounded-2xl border border-red-500/30 bg-red-950/20 p-5 lg:col-span-2">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className="flex items-center gap-2 font-semibold text-red-300">
+              <RotateCcw className="h-4 w-4 text-red-400" /> Fully Restart Competition / Reset Game
+            </h3>
+            <p className="mt-1 text-xs text-red-400/80">
+              Permanently clears all student answers, active sessions, scores, and malpractice strikes. All teams return to Round 1 start with 0 points.
+            </p>
+          </div>
+          <button
+            onClick={() => {
+              setShowResetModal(true);
+              setResetConfirmInput("");
+              setResetError(null);
+            }}
+            className="flex items-center gap-1.5 rounded-lg border border-red-500/60 bg-red-600 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-red-950/40 hover:bg-red-500 transition-all shrink-0"
+          >
+            <RotateCcw className="h-3.5 w-3.5" /> Reset Entire Competition
+          </button>
+        </div>
+      </div>
+
+      {resetSuccess && (
+        <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-xs font-semibold text-emerald-300 lg:col-span-2">
+          ✓ Entire competition has been reset successfully. All sessions, answers, and scores cleared.
+        </p>
+      )}
+
       {savedAt && <p className="text-xs text-emerald-400 lg:col-span-2">Settings saved.</p>}
       {saving && <p className="text-xs text-slate-500 lg:col-span-2">Saving...</p>}
+
+      {/* Reset Confirmation Modal */}
+      {showResetModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl border border-red-500/40 bg-slate-900 p-6 shadow-2xl">
+            <div className="mb-4 flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2 text-red-400">
+                <AlertTriangle className="h-5 w-5" />
+                <h3 className="text-base font-bold text-white">Reset Entire Competition</h3>
+              </div>
+              <button onClick={() => setShowResetModal(false)} className="rounded-lg p-1 text-slate-400 hover:text-white">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs text-slate-300">
+              <p className="rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-red-200">
+                <strong>WARNING:</strong> This action cannot be undone. All submitted answers, active quiz sessions, scores, and malpractice events will be permanently deleted.
+              </p>
+              <ul className="list-disc pl-4 space-y-1 text-slate-400">
+                <li>All registered teams will be preserved.</li>
+                <li>All teams will be reset to Round 1 start with 0 points and 0 strikes.</li>
+                <li>Round 1 and Round 2 will be disabled until you re-enable them.</li>
+              </ul>
+              <div>
+                <label className="block text-xs font-semibold text-slate-200 mt-2">
+                  Type <span className="font-mono text-red-400 font-bold">RESET</span> to confirm:
+                </label>
+                <input
+                  type="text"
+                  value={resetConfirmInput}
+                  onChange={(e) => setResetConfirmInput(e.target.value)}
+                  placeholder="RESET"
+                  className="mt-1 w-full rounded-lg border border-red-500/40 bg-slate-950 px-3 py-2 font-mono text-xs text-white uppercase focus:border-red-500 focus:outline-none"
+                />
+              </div>
+              {resetError && <p className="text-red-400 font-medium">{resetError}</p>}
+            </div>
+
+            <div className="mt-5 flex items-center justify-end gap-2.5 border-t border-slate-800 pt-3">
+              <button
+                type="button"
+                onClick={() => setShowResetModal(false)}
+                disabled={resetting}
+                className="rounded-lg border border-slate-700 px-4 py-2 text-xs font-medium text-slate-300 hover:border-slate-500 hover:text-white"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleResetGame}
+                disabled={resetting || resetConfirmInput.trim().toUpperCase() !== "RESET"}
+                className="flex items-center gap-1.5 rounded-lg bg-red-600 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-red-950/40 hover:bg-red-500 disabled:opacity-40"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                {resetting ? "Resetting..." : "Yes, Reset Everything"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

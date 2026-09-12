@@ -2,9 +2,10 @@
 
 import { useEffect, useState, use as usePromise } from "react";
 import Link from "next/link";
-import { ArrowLeft, ShieldAlert, CheckCircle2, XCircle, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ShieldAlert, CheckCircle2, XCircle, ShieldCheck, Pencil } from "lucide-react";
 import { LANGUAGE_DISPLAY } from "@/lib/language-map";
 import ReinstateModal from "@/components/admin/ReinstateModal";
+import EditTeamModal from "@/components/admin/EditTeamModal";
 
 type QuestionDetail = {
   position: number;
@@ -74,6 +75,7 @@ export default function TeamDetailPage({ params }: { params: Promise<{ id: strin
   const [expandedRound, setExpandedRound] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [showReinstate, setShowReinstate] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
 
   async function load() {
     const res = await fetch(`/api/admin/teams/${id}`, { cache: "no-store" });
@@ -115,7 +117,15 @@ export default function TeamDetailPage({ params }: { params: Promise<{ id: strin
       <div className="mb-6 rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-white">{team.teamName}</h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-bold text-white">{team.teamName}</h1>
+              <button
+                onClick={() => setShowEdit(true)}
+                className="flex items-center gap-1 rounded-lg border border-slate-700 bg-slate-800/80 px-2.5 py-1 text-xs font-semibold text-slate-300 hover:border-slate-500 hover:text-white"
+              >
+                <Pencil className="h-3 w-3 text-sky-400" /> Edit Details
+              </button>
+            </div>
             <p className="font-mono-code text-sm text-slate-500">{team.teamCode} · {team.collegeDept ?? "—"}</p>
             <p className="mt-1 text-sm text-slate-400">Members: {members.join(", ") || "—"}</p>
           </div>
@@ -259,6 +269,22 @@ export default function TeamDetailPage({ params }: { params: Promise<{ id: strin
           }}
           onClose={() => setShowReinstate(false)}
           onReinstated={load}
+        />
+      )}
+      {showEdit && (
+        <EditTeamModal
+          team={{
+            id: team.id,
+            teamCode: team.teamCode,
+            teamName: team.teamName,
+            member1Name: team.member1Name,
+            member2Name: team.member2Name,
+            member3Name: team.member3Name,
+            member4Name: team.member4Name,
+            collegeDept: team.collegeDept,
+          }}
+          onClose={() => setShowEdit(false)}
+          onSaved={load}
         />
       )}
     </div>
