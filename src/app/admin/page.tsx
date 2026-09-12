@@ -2,13 +2,14 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Terminal, LogOut, RefreshCcw, Plus, Users, Trophy, Settings2, FileCode2 } from "lucide-react";
+import { Terminal, LogOut, RefreshCcw, Plus, Users, Trophy, Settings2, FileCode2, FileSpreadsheet } from "lucide-react";
 import TeamsTable, { type AdminTeamRow } from "@/components/admin/TeamsTable";
 import AlertsFeed from "@/components/admin/AlertsFeed";
 import SettingsPanel, { type Settings } from "@/components/admin/SettingsPanel";
 import LeaderboardPanel from "@/components/admin/LeaderboardPanel";
 import QuestionsPanel from "@/components/admin/QuestionsPanel";
 import CreateTeamModal from "@/components/admin/CreateTeamModal";
+import ImportTeamsModal from "@/components/admin/ImportTeamsModal";
 import EditTeamModal, { type EditTeamTarget } from "@/components/admin/EditTeamModal";
 import ReinstateModal, { type ReinstateTarget } from "@/components/admin/ReinstateModal";
 import type { LiveEvent } from "@/lib/events";
@@ -23,6 +24,7 @@ export default function AdminDashboardPage() {
   const [events, setEvents] = useState<LiveEvent[]>([]);
   const [tab, setTab] = useState<Tab>("teams");
   const [showCreate, setShowCreate] = useState(false);
+  const [showImport, setShowImport] = useState(false);
   const [editTarget, setEditTarget] = useState<EditTeamTarget | null>(null);
   const [reinstateTarget, setReinstateTarget] = useState<ReinstateTarget | null>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
@@ -169,9 +171,20 @@ export default function AdminDashboardPage() {
             <TabButton icon={<FileCode2 className="h-4 w-4" />} label="Questions" active={tab === "questions"} onClick={() => setTab("questions")} />
           </nav>
           {tab === "teams" && (
-            <button onClick={() => setShowCreate(true)} className="flex items-center gap-1.5 rounded-lg bg-emerald-500 px-4 py-2 text-sm font-bold text-slate-950 hover:bg-emerald-400">
-              <Plus className="h-4 w-4" /> Register Team
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowImport(true)}
+                className="flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3.5 py-2 text-sm font-semibold text-slate-200 transition hover:border-sky-500/50 hover:bg-slate-700"
+              >
+                <FileSpreadsheet className="h-4 w-4 text-sky-400" /> Import Google Form / CSV
+              </button>
+              <button
+                onClick={() => setShowCreate(true)}
+                className="flex items-center gap-1.5 rounded-lg bg-emerald-500 px-4 py-2 text-sm font-bold text-slate-950 transition hover:bg-emerald-400"
+              >
+                <Plus className="h-4 w-4" /> Register Team
+              </button>
+            </div>
           )}
         </div>
 
@@ -212,6 +225,7 @@ export default function AdminDashboardPage() {
       </div>
 
       {showCreate && <CreateTeamModal onClose={() => setShowCreate(false)} onCreated={loadTeams} />}
+      {showImport && <ImportTeamsModal onClose={() => setShowImport(false)} onImported={loadTeams} />}
       {editTarget && (
         <EditTeamModal
           team={editTarget}

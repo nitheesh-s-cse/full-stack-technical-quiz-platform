@@ -146,13 +146,14 @@ export default function QuizRunner({
   }, [round]);
 
   const handleServerSecurityResponse = useCallback(
-    (eventType: MalpracticeEventType, res: { malpracticeCount: number; terminated: boolean }) => {
+    (eventType: MalpracticeEventType, res: { malpracticeCount: number; terminated: boolean; throttled?: boolean }) => {
       setMalpracticeCount(res.malpracticeCount);
       if (res.terminated) {
         setTerminatedLocally(true);
         onTerminated();
         return;
       }
+      if (res.throttled) return;
       const label = eventType.replaceAll("_", " ").toLowerCase();
       setToast(`Security notice: ${label} detected (${res.malpracticeCount}/3)`);
     },

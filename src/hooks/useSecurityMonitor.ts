@@ -13,9 +13,23 @@ type Options = {
 };
 
 const DEDUPE_MS = 1200;
+const EXIT_COOLDOWN_MS = 3500;
+const BLUR_DEBOUNCE_MS = 400;
+const EXIT_EVENT_TYPES: readonly MalpracticeEventType[] = ["TAB_SWITCH", "WINDOW_BLUR", "FULLSCREEN_EXIT"];
+
+function isMobileDevice(): boolean {
+  if (typeof window === "undefined") return false;
+  const ua = navigator.userAgent || navigator.vendor || (window as unknown as { opera?: string }).opera || "";
+  const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+  const hasCoarsePointer = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
+  const hasTouch = "ontouchstart" in window || navigator.maxTouchPoints > 0;
+  return Boolean(isMobileUA || (hasCoarsePointer && hasTouch));
+}
 
 export function useSecurityMonitor({ enabled, round, getCurrentQuestionId, onServerResponse }: Options) {
   const lastSentRef = useRef<Record<string, number>>({});
+  const lastExitSentRef = useRef<number>(0);
+  const blurTimerRef = useRef<NodeJS.Timeout | null>(null);
   const enabledRef = useRef(enabled);
   enabledRef.current = enabled;
 
@@ -26,6 +40,13 @@ export function useSecurityMonitor({ enabled, round, getCurrentQuestionId, onSer
       const now = Date.now();
       const last = lastSentRef.current[eventType] ?? 0;
       if (now - last < DEDUPE_MS) return;
+
+      const isExit = EXIT_EVENT_TYPES.includes(eventType);
+      if (isExit) {
+        if (now - lastExitSentRef.current < EXIT_COOLDOWN_MS) return;
+        lastExitSentRef.current = now;
+      }
+
       lastSentRef.current[eventType] = now;
 
       try {
@@ -97,16 +118,49 @@ export function useSecurityMonitor({ enabled, round, getCurrentQuestionId, onSer
 
     const onVisibilityChange = () => {
       if (document.hidden) {
+        // Tab or mobile app was switched away/backgrounded.
+        // Cancel any pending blur timer to avoid double-reporting both BLUR and TAB_SWITCH.
+        if (blurTimerRef.current) {
+          clearTimeout(blurTimerRef.current);
+          blurTimerRef.current = null;
+        }
         report("TAB_SWITCH");
       }
     };
 
     const onBlur = () => {
+      // If the document is already hidden, visibilitychange handles it as TAB_SWITCH.
       if (document.hidden) return;
-      report("WINDOW_BLUR");
+
+      // On mobile devices, isolated blur without document.hidden is almost always
+      // a system overlay, notification tray swipe, incoming call, or virtual keyboard.
+      // Real app navigation is captured by visibilitychange ("TAB_SWITCH").
+      if (isMobileDevice()) return;
+
+      // On desktop, debounce blur to verify if visibilitychange fires immediately after.
+      if (blurTimerRef.current) {
+        clearTimeout(blurTimerRef.current);
+      }
+
+      blurTimerRef.current = setTimeout(() => {
+        blurTimerRef.current = null;
+        if (!document.hidden) {
+          report("WINDOW_BLUR");
+        }
+      }, BLUR_DEBOUNCE_MS);
+    };
+
+    const onFocus = () => {
+      if (blurTimerRef.current) {
+        clearTimeout(blurTimerRef.current);
+        blurTimerRef.current = null;
+      }
     };
 
     const onFullscreenChange = () => {
+      // If the document is hidden or transitioning to hidden (e.g. mobile home screen),
+      // exiting fullscreen is an automatic browser side-effect of leaving the page.
+      if (document.hidden) return;
       if (!document.fullscreenElement) {
         report("FULLSCREEN_EXIT");
       }
@@ -125,21 +179,33 @@ export function useSecurityMonitor({ enabled, round, getCurrentQuestionId, onSer
     document.addEventListener("keydown", onKeyDown, true);
     document.addEventListener("visibilitychange", onVisibilityChange);
     window.addEventListener("blur", onBlur);
+    window.addEventListener("focus", onFocus);
     document.addEventListener("fullscreenchange", onFullscreenChange);
     window.addEventListener("beforeunload", onBeforeUnload);
 
     // Best-effort DevTools viewport heuristic — inherently bypassable, so we
     // only use it as one weak, low-confidence signal among many.
-    const devtoolsInterval = setInterval(() => {
-      const threshold = 180;
-      const widthDiff = window.outerWidth - window.innerWidth;
-      const heightDiff = window.outerHeight - window.innerHeight;
-      if (widthDiff > threshold || heightDiff > threshold) {
-        report("DEVTOOLS_SIGNAL", { widthDiff, heightDiff, heuristic: "viewport" });
-      }
-    }, 3000);
+    // Skip on mobile devices since address bars, virtual keyboards, and system UI scale diffs cause false positives.
+    let devtoolsInterval: NodeJS.Timeout | null = null;
+    if (!isMobileDevice()) {
+      devtoolsInterval = setInterval(() => {
+        const threshold = 180;
+        const widthDiff = window.outerWidth - window.innerWidth;
+        const heightDiff = window.outerHeight - window.innerHeight;
+        if (widthDiff > threshold || heightDiff > threshold) {
+          report("DEVTOOLS_SIGNAL", { widthDiff, heightDiff, heuristic: "viewport" });
+        }
+      }, 3000);
+    }
 
     return () => {
+      if (blurTimerRef.current) {
+        clearTimeout(blurTimerRef.current);
+        blurTimerRef.current = null;
+      }
+      if (devtoolsInterval) {
+        clearInterval(devtoolsInterval);
+      }
       document.removeEventListener("contextmenu", onContextMenu);
       document.removeEventListener("copy", onCopy);
       document.removeEventListener("cut", onCut);
@@ -149,9 +215,9 @@ export function useSecurityMonitor({ enabled, round, getCurrentQuestionId, onSer
       document.removeEventListener("keydown", onKeyDown, true);
       document.removeEventListener("visibilitychange", onVisibilityChange);
       window.removeEventListener("blur", onBlur);
+      window.removeEventListener("focus", onFocus);
       document.removeEventListener("fullscreenchange", onFullscreenChange);
       window.removeEventListener("beforeunload", onBeforeUnload);
-      clearInterval(devtoolsInterval);
     };
   }, [enabled, round, getCurrentQuestionId, onServerResponse]);
 }
