@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, LogIn, PlayCircle, CheckCircle2, ShieldX, Settings } from "lucide-react";
+import { AlertTriangle, LogIn, PlayCircle, CheckCircle2, ShieldX, Settings, Trash2 } from "lucide-react";
 import type { LiveEvent } from "@/lib/events";
 
 const ICONS: Record<string, React.ReactNode> = {
@@ -10,6 +10,7 @@ const ICONS: Record<string, React.ReactNode> = {
   QUIZ_SUBMITTED: <CheckCircle2 className="h-4 w-4 text-emerald-400" />,
   TERMINATED: <ShieldX className="h-4 w-4 text-red-500" />,
   SETTINGS_UPDATED: <Settings className="h-4 w-4 text-slate-400" />,
+  TEAM_DELETED: <Trash2 className="h-4 w-4 text-red-400" />,
 };
 
 export default function AlertsFeed({ events }: { events: LiveEvent[] }) {

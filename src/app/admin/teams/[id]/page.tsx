@@ -2,10 +2,12 @@
 
 import { useEffect, useState, use as usePromise } from "react";
 import Link from "next/link";
-import { ArrowLeft, ShieldAlert, CheckCircle2, XCircle, ShieldCheck, Pencil } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, ShieldAlert, CheckCircle2, XCircle, ShieldCheck, Pencil, Trash2 } from "lucide-react";
 import { LANGUAGE_DISPLAY } from "@/lib/language-map";
 import ReinstateModal from "@/components/admin/ReinstateModal";
 import EditTeamModal from "@/components/admin/EditTeamModal";
+import DeleteTeamModal from "@/components/admin/DeleteTeamModal";
 
 type QuestionDetail = {
   position: number;
@@ -69,6 +71,7 @@ type TeamDetail = {
 
 export default function TeamDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = usePromise(params);
+  const router = useRouter();
   const [team, setTeam] = useState<TeamDetail | null>(null);
   const [rounds, setRounds] = useState<RoundDetail[]>([]);
   const [events, setEvents] = useState<MalpracticeEvent[]>([]);
@@ -76,6 +79,7 @@ export default function TeamDetailPage({ params }: { params: Promise<{ id: strin
   const [loading, setLoading] = useState(true);
   const [showReinstate, setShowReinstate] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
 
   async function load() {
     const res = await fetch(`/api/admin/teams/${id}`, { cache: "no-store" });
@@ -124,6 +128,12 @@ export default function TeamDetailPage({ params }: { params: Promise<{ id: strin
                 className="flex items-center gap-1 rounded-lg border border-slate-700 bg-slate-800/80 px-2.5 py-1 text-xs font-semibold text-slate-300 hover:border-slate-500 hover:text-white"
               >
                 <Pencil className="h-3 w-3 text-sky-400" /> Edit Details
+              </button>
+              <button
+                onClick={() => setShowDelete(true)}
+                className="flex items-center gap-1 rounded-lg border border-red-500/40 bg-red-500/10 px-2.5 py-1 text-xs font-semibold text-red-300 hover:border-red-500 hover:bg-red-500/20"
+              >
+                <Trash2 className="h-3 w-3 text-red-400" /> Delete Team
               </button>
             </div>
             <p className="font-mono-code text-sm text-slate-500">{team.teamCode} · {team.collegeDept ?? "—"}</p>
@@ -285,6 +295,20 @@ export default function TeamDetailPage({ params }: { params: Promise<{ id: strin
           }}
           onClose={() => setShowEdit(false)}
           onSaved={load}
+          onDelete={() => setShowDelete(true)}
+        />
+      )}
+      {showDelete && (
+        <DeleteTeamModal
+          team={{
+            id: team.id,
+            teamCode: team.teamCode,
+            teamName: team.teamName,
+          }}
+          onClose={() => setShowDelete(false)}
+          onDeleted={() => {
+            router.replace("/admin");
+          }}
         />
       )}
     </div>

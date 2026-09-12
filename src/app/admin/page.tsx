@@ -12,6 +12,7 @@ import CreateTeamModal from "@/components/admin/CreateTeamModal";
 import ImportTeamsModal from "@/components/admin/ImportTeamsModal";
 import EditTeamModal, { type EditTeamTarget } from "@/components/admin/EditTeamModal";
 import ReinstateModal, { type ReinstateTarget } from "@/components/admin/ReinstateModal";
+import DeleteTeamModal from "@/components/admin/DeleteTeamModal";
 import type { LiveEvent } from "@/lib/events";
 
 type Tab = "teams" | "leaderboard" | "settings" | "questions";
@@ -26,6 +27,7 @@ export default function AdminDashboardPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const [editTarget, setEditTarget] = useState<EditTeamTarget | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<AdminTeamRow | null>(null);
   const [reinstateTarget, setReinstateTarget] = useState<ReinstateTarget | null>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
 
@@ -197,6 +199,7 @@ export default function AdminDashboardPage() {
                 onQualify={handleQualify}
                 onResetSession={handleResetSession}
                 onEdit={(t) => setEditTarget(t)}
+                onDelete={(t) => setDeleteTarget(t)}
                 onReinstate={(t) =>
                   setReinstateTarget({
                     id: t.id,
@@ -231,6 +234,18 @@ export default function AdminDashboardPage() {
           team={editTarget}
           onClose={() => setEditTarget(null)}
           onSaved={loadTeams}
+          onDelete={(target) => {
+            setEditTarget(null);
+            const found = teams.find((t) => t.id === target.id) ?? null;
+            setDeleteTarget(found);
+          }}
+        />
+      )}
+      {deleteTarget && (
+        <DeleteTeamModal
+          team={deleteTarget}
+          onClose={() => setDeleteTarget(null)}
+          onDeleted={loadTeams}
         />
       )}
       {reinstateTarget && (

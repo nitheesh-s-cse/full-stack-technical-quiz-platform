@@ -11,6 +11,7 @@ export type LiveEvent = {
     | "TERMINATED"
     | "SETTINGS_UPDATED"
     | "TEAM_UPDATED"
+    | "TEAM_DELETED"
     | "HEARTBEAT";
   teamId?: number;
   teamCode?: string;

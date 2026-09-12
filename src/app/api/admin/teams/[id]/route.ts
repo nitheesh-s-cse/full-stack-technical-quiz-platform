@@ -157,3 +157,36 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
 
   return NextResponse.json({ ok: true, team: updated });
 }
+
+export async function DELETE(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+  const admin = await requireAdmin(req);
+  if (!admin) return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+
+  const { id } = await ctx.params;
+  const teamId = Number(id);
+  if (!teamId) return NextResponse.json({ error: "Invalid team id." }, { status: 400 });
+
+  const [existing] = await db.select().from(teams).where(eq(teams.id, teamId)).limit(1);
+  if (!existing) return NextResponse.json({ error: "Team not found." }, { status: 404 });
+
+  // Log admin action before deletion
+  await logAdminAction(admin.id, "DELETE_TEAM", null, {
+    deletedTeamId: teamId,
+    teamCode: existing.teamCode,
+    teamName: existing.teamName,
+    collegeDept: existing.collegeDept,
+  });
+
+  // Delete team (cascading deletes associated sessions, answers, and malpractice events)
+  await db.delete(teams).where(eq(teams.id, teamId));
+
+  broadcast({
+    type: "TEAM_DELETED",
+    teamId,
+    teamCode: existing.teamCode,
+    teamName: existing.teamName,
+    message: `Team "${existing.teamName}" (${existing.teamCode}) was deleted by admin (${admin.username})`,
+  });
+
+  return NextResponse.json({ ok: true, message: `Team "${existing.teamName}" successfully deleted.` });
+}

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Circle, ShieldOff, ShieldCheck, RotateCcw, Award, Eye, Pencil } from "lucide-react";
+import { Circle, ShieldOff, ShieldCheck, RotateCcw, Award, Eye, Pencil, Trash2 } from "lucide-react";
 
 export type AdminTeamRow = {
   id: number;
@@ -56,6 +56,7 @@ export default function TeamsTable({
   onResetSession,
   onReinstate,
   onEdit,
+  onDelete,
 }: {
   teams: AdminTeamRow[];
   onTerminate: (id: number) => void;
@@ -63,6 +64,7 @@ export default function TeamsTable({
   onResetSession: (id: number) => void;
   onReinstate?: (team: AdminTeamRow) => void;
   onEdit?: (team: AdminTeamRow) => void;
+  onDelete?: (team: AdminTeamRow) => void;
 }) {
   return (
     <div className="overflow-x-auto rounded-2xl border border-slate-800">
@@ -164,6 +166,13 @@ export default function TeamsTable({
                         <ShieldOff className="h-3.5 w-3.5" />
                       </button>
                     )}
+                    <button
+                      title="Delete team"
+                      onClick={() => onDelete?.(t)}
+                      className="rounded-md border border-slate-700 p-1.5 text-slate-400 hover:border-red-500/60 hover:bg-red-500/10 hover:text-red-400"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
                   </div>
                 </td>
               </tr>
