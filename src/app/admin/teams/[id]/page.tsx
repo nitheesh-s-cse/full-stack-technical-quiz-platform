@@ -2,8 +2,9 @@
 
 import { useEffect, useState, use as usePromise } from "react";
 import Link from "next/link";
-import { ArrowLeft, ShieldAlert, CheckCircle2, XCircle } from "lucide-react";
+import { ArrowLeft, ShieldAlert, CheckCircle2, XCircle, ShieldCheck } from "lucide-react";
 import { LANGUAGE_DISPLAY } from "@/lib/language-map";
+import ReinstateModal from "@/components/admin/ReinstateModal";
 
 type QuestionDetail = {
   position: number;
@@ -72,6 +73,7 @@ export default function TeamDetailPage({ params }: { params: Promise<{ id: strin
   const [events, setEvents] = useState<MalpracticeEvent[]>([]);
   const [expandedRound, setExpandedRound] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showReinstate, setShowReinstate] = useState(false);
 
   async function load() {
     const res = await fetch(`/api/admin/teams/${id}`, { cache: "no-store" });
@@ -132,10 +134,23 @@ export default function TeamDetailPage({ params }: { params: Promise<{ id: strin
           <Stat label="Malpractice" value={team.malpracticeCount} accent={team.malpracticeCount > 0 ? "text-red-400" : undefined} suffix="/3" />
         </div>
 
-        {team.terminationReason && (
-          <p className="mt-4 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm text-red-300">
-            Termination reason: {team.terminationReason}
-          </p>
+        {(team.teamStatus === "TERMINATED" || team.teamStatus === "DISQUALIFIED") && (
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-red-500/30 bg-red-500/10 p-4">
+            <div>
+              <p className="text-sm font-semibold text-red-200">
+                This team is currently {team.teamStatus.toLowerCase()}.
+              </p>
+              {team.terminationReason && (
+                <p className="mt-0.5 text-xs text-red-300/80">Reason: {team.terminationReason}</p>
+              )}
+            </div>
+            <button
+              onClick={() => setShowReinstate(true)}
+              className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3.5 py-2 text-xs font-semibold text-white shadow-lg shadow-emerald-950/40 hover:bg-emerald-500 transition-all"
+            >
+              <ShieldCheck className="h-4 w-4" /> Give Another Chance
+            </button>
+          </div>
         )}
       </div>
 
@@ -233,6 +248,19 @@ export default function TeamDetailPage({ params }: { params: Promise<{ id: strin
           )}
         </div>
       ))}
+
+      {showReinstate && (
+        <ReinstateModal
+          target={{
+            id: team.id,
+            teamName: team.teamName,
+            teamCode: team.teamCode,
+            currentRound: team.currentRound,
+          }}
+          onClose={() => setShowReinstate(false)}
+          onReinstated={load}
+        />
+      )}
     </div>
   );
 }

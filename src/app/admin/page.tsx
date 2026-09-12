@@ -9,6 +9,7 @@ import SettingsPanel, { type Settings } from "@/components/admin/SettingsPanel";
 import LeaderboardPanel from "@/components/admin/LeaderboardPanel";
 import QuestionsPanel from "@/components/admin/QuestionsPanel";
 import CreateTeamModal from "@/components/admin/CreateTeamModal";
+import ReinstateModal, { type ReinstateTarget } from "@/components/admin/ReinstateModal";
 import type { LiveEvent } from "@/lib/events";
 
 type Tab = "teams" | "leaderboard" | "settings" | "questions";
@@ -21,6 +22,7 @@ export default function AdminDashboardPage() {
   const [events, setEvents] = useState<LiveEvent[]>([]);
   const [tab, setTab] = useState<Tab>("teams");
   const [showCreate, setShowCreate] = useState(false);
+  const [reinstateTarget, setReinstateTarget] = useState<ReinstateTarget | null>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
 
   const loadTeams = useCallback(async () => {
@@ -174,7 +176,20 @@ export default function AdminDashboardPage() {
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1fr_320px]">
           <div>
             {tab === "teams" && (
-              <TeamsTable teams={teams} onTerminate={handleTerminate} onQualify={handleQualify} onResetSession={handleResetSession} />
+              <TeamsTable
+                teams={teams}
+                onTerminate={handleTerminate}
+                onQualify={handleQualify}
+                onResetSession={handleResetSession}
+                onReinstate={(t) =>
+                  setReinstateTarget({
+                    id: t.id,
+                    teamName: t.teamName,
+                    teamCode: t.teamCode,
+                    currentRound: t.currentRound,
+                  })
+                }
+              />
             )}
             {tab === "leaderboard" && <LeaderboardPanel />}
             {tab === "settings" && settings && <SettingsPanel settings={settings} onSave={saveSettings} />}
@@ -185,6 +200,13 @@ export default function AdminDashboardPage() {
       </div>
 
       {showCreate && <CreateTeamModal onClose={() => setShowCreate(false)} onCreated={loadTeams} />}
+      {reinstateTarget && (
+        <ReinstateModal
+          target={reinstateTarget}
+          onClose={() => setReinstateTarget(null)}
+          onReinstated={loadTeams}
+        />
+      )}
     </div>
   );
 }

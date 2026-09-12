@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Circle, ShieldOff, RotateCcw, Award, Eye } from "lucide-react";
+import { Circle, ShieldOff, ShieldCheck, RotateCcw, Award, Eye } from "lucide-react";
 
 export type AdminTeamRow = {
   id: number;
@@ -50,11 +50,13 @@ export default function TeamsTable({
   onTerminate,
   onQualify,
   onResetSession,
+  onReinstate,
 }: {
   teams: AdminTeamRow[];
   onTerminate: (id: number) => void;
   onQualify: (id: number, qualified: boolean) => void;
   onResetSession: (id: number) => void;
+  onReinstate?: (team: AdminTeamRow) => void;
 }) {
   return (
     <div className="overflow-x-auto rounded-2xl border border-slate-800">
@@ -131,14 +133,24 @@ export default function TeamsTable({
                     >
                       <RotateCcw className="h-3.5 w-3.5" />
                     </button>
-                    <button
-                      title="Terminate team"
-                      onClick={() => onTerminate(t.id)}
-                      disabled={t.teamStatus === "TERMINATED"}
-                      className="rounded-md border border-red-500/40 p-1.5 text-red-400 hover:bg-red-500/10 disabled:opacity-30"
-                    >
-                      <ShieldOff className="h-3.5 w-3.5" />
-                    </button>
+                    {t.teamStatus === "TERMINATED" || t.teamStatus === "DISQUALIFIED" ? (
+                      <button
+                        title="Give another chance / Reinstate team"
+                        onClick={() => onReinstate?.(t)}
+                        className="flex items-center gap-1 rounded-md border border-emerald-500/60 bg-emerald-500/10 px-2 py-1 text-xs font-semibold text-emerald-300 hover:bg-emerald-500/20 hover:border-emerald-400"
+                      >
+                        <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
+                        <span className="hidden sm:inline">Pardon</span>
+                      </button>
+                    ) : (
+                      <button
+                        title="Terminate team"
+                        onClick={() => onTerminate(t.id)}
+                        className="rounded-md border border-red-500/40 p-1.5 text-red-400 hover:bg-red-500/10 disabled:opacity-30"
+                      >
+                        <ShieldOff className="h-3.5 w-3.5" />
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>
