@@ -49,18 +49,20 @@ export function buildClientQuestions(
   order: QuestionOrder,
   questionsById: Map<number, QuestionRow>,
 ): ClientQuestion[] {
-  return order.map((entry, idx) => {
+  const result: ClientQuestion[] = [];
+  let position = 1;
+  for (const entry of order) {
     const q = questionsById.get(entry.questionId);
     if (!q) {
-      throw new Error(`Question ${entry.questionId} missing from question bank`);
+      continue;
     }
     const options = {} as Record<OptionLabel, string>;
     entry.optionKeys.forEach((originalKey, i) => {
       const label = OPTION_LABELS[i];
-      options[label] = q[optionFieldFor(originalKey)] as string;
+      options[label] = (q[optionFieldFor(originalKey)] as string) ?? "";
     });
-    return {
-      position: idx + 1,
+    result.push({
+      position: position++,
       questionId: q.id,
       language: q.language,
       difficulty: q.difficulty,
@@ -68,8 +70,9 @@ export function buildClientQuestions(
       questionText: q.questionText,
       marks: q.marks,
       options,
-    };
-  });
+    });
+  }
+  return result;
 }
 
 /** Given the original correct option key, find which displayed label it maps to. */

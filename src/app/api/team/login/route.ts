@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { teams } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { teams, quizSessions } from "@/db/schema";
+import { eq, and } from "drizzle-orm";
 import { generateToken, hashToken } from "@/lib/crypto";
 import { TEAM_COOKIE, BLOCKED_STATUSES } from "@/lib/constants";
 import { broadcast } from "@/lib/events";
@@ -48,13 +48,26 @@ export async function POST(req: NextRequest) {
   let tokenToSet = existingCookieToken;
 
   if (team.activeLoginTokenHash && !existingHashMatches) {
-    return NextResponse.json(
-      { error: "This team already has an active session on another device. Ask the admin to reset the session if this is a mistake." },
-      { status: 409 },
-    );
+    const [activeSession] = await db
+      .select()
+      .from(quizSessions)
+      .where(and(eq(quizSessions.teamId, team.id), eq(quizSessions.status, "ACTIVE")))
+      .limit(1);
+
+    const now = Date.now();
+    const lastSeenMs = team.lastSeenAt ? new Date(team.lastSeenAt).getTime() : 0;
+    const isInactiveLong = now - lastSeenMs > 1000 * 60 * 30; // 30 minutes of inactivity
+
+    // Reject only if a quiz session is actively running or the device was seen within the active window
+    if (activeSession || !isInactiveLong) {
+      return NextResponse.json(
+        { error: "This team already has an active session on another device. Ask the admin to reset the session if this is a mistake." },
+        { status: 409 },
+      );
+    }
   }
 
-  if (!team.activeLoginTokenHash) {
+  if (!team.activeLoginTokenHash || !existingHashMatches) {
     tokenToSet = generateToken();
     const deviceInfo = req.headers.get("user-agent") ?? "unknown-device";
     await db

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { questions, quizSessions, teams } from "@/db/schema";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { requireTeam } from "@/lib/team-auth";
 import { getSettings } from "@/lib/settings";
 import { getActiveSessionForTeamRound } from "@/lib/grading";
@@ -51,17 +51,17 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const questionRows = await db
+  const activeQuestionRows = await db
     .select()
     .from(questions)
     .where(and(eq(questions.round, round), eq(questions.isActive, true)))
     .orderBy(questions.orderIndex);
 
   if (!session) {
-    if (questionRows.length === 0) {
+    if (activeQuestionRows.length === 0) {
       return NextResponse.json({ error: "No questions configured for this round yet." }, { status: 500 });
     }
-    const order = buildQuestionOrder(questionRows.map((q) => q.id));
+    const order = buildQuestionOrder(activeQuestionRows.map((q) => q.id));
     const durationMinutes = round === 1 ? settings!.round1DurationMinutes : settings!.round2DurationMinutes;
     const startedAt = new Date();
     const endsAt = new Date(startedAt.getTime() + durationMinutes * 60_000);
@@ -101,8 +101,14 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  const questionsById = new Map(questionRows.map((q) => [q.id, q]));
-  const clientQuestions = buildClientQuestions(session.questionOrder as QuestionOrder, questionsById);
+  const order = session.questionOrder as QuestionOrder;
+  const sessionQuestionIds = order.map((o) => o.questionId);
+  const sessionQuestionRows = sessionQuestionIds.length
+    ? await db.select().from(questions).where(inArray(questions.id, sessionQuestionIds))
+    : activeQuestionRows;
+
+  const questionsById = new Map(sessionQuestionRows.map((q) => [q.id, q]));
+  const clientQuestions = buildClientQuestions(order, questionsById);
 
   return NextResponse.json({
     sessionId: session.id,

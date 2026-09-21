@@ -10,7 +10,7 @@ async function main() {
   // Admin account
   // ---------------------------------------------------------------------
   const adminUsername = "admin";
-  const adminPassword = "OutputHunt@2026";
+  const adminPassword = "JustPassword@2026";
   const passwordHash = await bcrypt.hash(adminPassword, 10);
   await db
     .insert(admins)

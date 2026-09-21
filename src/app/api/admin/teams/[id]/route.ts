@@ -34,25 +34,28 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string 
     const answers = await db.select().from(quizAnswers).where(eq(quizAnswers.sessionId, session.id));
     const answersByQuestion = new Map(answers.map((a) => [a.questionId, a]));
 
-    const questionDetails = clientQuestions.map((cq) => {
-      const q = questionsById.get(cq.questionId)!;
+    const questionDetails = clientQuestions.flatMap((cq) => {
+      const q = questionsById.get(cq.questionId);
+      if (!q) return [];
       const answer = answersByQuestion.get(cq.questionId);
       const correctLabel = displayedLabelForOption(order, cq.questionId, q.correctOption as never);
-      return {
-        position: cq.position,
-        questionId: cq.questionId,
-        language: cq.language,
-        difficulty: cq.difficulty,
-        code: cq.code,
-        questionText: cq.questionText,
-        options: cq.options,
-        selectedLabel: answer?.selectedLabel ?? null,
-        correctLabel,
-        isCorrect: answer?.isCorrect ?? null,
-        marksAwarded: answer?.marksAwarded ?? 0,
-        marks: q.marks,
-        answeredAt: answer?.answeredAt ?? null,
-      };
+      return [
+        {
+          position: cq.position,
+          questionId: cq.questionId,
+          language: cq.language,
+          difficulty: cq.difficulty,
+          code: cq.code,
+          questionText: cq.questionText,
+          options: cq.options,
+          selectedLabel: answer?.selectedLabel ?? null,
+          correctLabel,
+          isCorrect: answer?.isCorrect ?? null,
+          marksAwarded: answer?.marksAwarded ?? 0,
+          marks: q.marks,
+          answeredAt: answer?.answeredAt ?? null,
+        },
+      ];
     });
 
     roundsDetail.push({
