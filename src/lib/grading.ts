@@ -66,10 +66,21 @@ export async function finalizeSession(
   }
 
   const now = new Date();
-  await db
+  const [updatedSession] = await db
     .update(quizSessions)
     .set({ status: finalStatus, completedAt: now, score, updatedAt: now })
-    .where(eq(quizSessions.id, sessionId));
+    .where(and(eq(quizSessions.id, sessionId), eq(quizSessions.status, "ACTIVE")))
+    .returning();
+
+  if (!updatedSession) {
+    const [current] = await db.select().from(quizSessions).where(eq(quizSessions.id, sessionId)).limit(1);
+    return {
+      score: current?.score ?? score,
+      correctCount,
+      totalQuestions: order.length,
+      alreadyFinalized: true,
+    };
+  }
 
   const [team] = await db.select().from(teams).where(eq(teams.id, session.teamId)).limit(1);
   if (team) {

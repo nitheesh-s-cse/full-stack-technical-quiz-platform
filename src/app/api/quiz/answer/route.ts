@@ -42,26 +42,22 @@ export async function POST(req: NextRequest) {
   const belongs = order.some((o) => o.questionId === questionId);
   if (!belongs) return NextResponse.json({ error: "Question does not belong to this session." }, { status: 400 });
 
-  const [existing] = await db
-    .select()
-    .from(quizAnswers)
-    .where(and(eq(quizAnswers.sessionId, session.id), eq(quizAnswers.questionId, questionId)))
-    .limit(1);
-
-  if (existing) {
-    await db
-      .update(quizAnswers)
-      .set({ selectedLabel, updatedAt: new Date() })
-      .where(eq(quizAnswers.id, existing.id));
-  } else {
-    await db.insert(quizAnswers).values({
+  await db
+    .insert(quizAnswers)
+    .values({
       sessionId: session.id,
       teamId: team.id,
       questionId,
       round,
       selectedLabel,
+    })
+    .onConflictDoUpdate({
+      target: [quizAnswers.sessionId, quizAnswers.questionId],
+      set: {
+        selectedLabel,
+        updatedAt: new Date(),
+      },
     });
-  }
 
   return NextResponse.json({ ok: true });
 }

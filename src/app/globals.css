@@ -32,13 +32,38 @@ body {
   border-radius: 999px;
 }
 
+/* Disable mobile selection and long-press callout globally */
+*, *::before, *::after {
+  -webkit-touch-callout: none !important; /* iOS Safari & Chromium callout menu disable */
+  -webkit-user-select: none !important;
+  user-select: none !important;
+}
+
+/* Allow interaction and typing only for form controls */
+button, input, select, textarea {
+  -webkit-touch-callout: default;
+}
+
+input, textarea {
+  -webkit-user-select: text !important;
+  user-select: text !important;
+}
+
+/* Codeblock protects against AI highlight */
+pre, code {
+  -webkit-touch-callout: none !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
+}
+
 .font-mono-code {
   font-family: var(--font-mono);
 }
 
 .no-select {
-  user-select: none;
-  -webkit-user-select: none;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -webkit-touch-callout: none !important;
 }
 
 @keyframes pulse-danger {

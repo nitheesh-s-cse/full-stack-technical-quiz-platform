@@ -13,8 +13,9 @@ export default function AnswerCard({ label, text, selected, disabled, onSelect }
     <button
       onClick={onSelect}
       disabled={disabled}
+      onContextMenu={(e) => e.preventDefault()}
       className={[
-        "no-select group flex w-full items-center gap-4 rounded-xl border px-5 py-4 text-left transition disabled:cursor-not-allowed disabled:opacity-60",
+        "no-select select-none group flex w-full items-center gap-4 rounded-xl border px-5 py-4 text-left transition disabled:cursor-not-allowed disabled:opacity-60",
         selected
           ? "border-emerald-400 bg-emerald-500/10 ring-1 ring-emerald-400/60"
           : "border-slate-800 bg-slate-900/50 hover:border-slate-600 hover:bg-slate-900",

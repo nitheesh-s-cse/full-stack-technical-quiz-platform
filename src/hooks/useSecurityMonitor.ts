@@ -30,8 +30,6 @@ export function useSecurityMonitor({ enabled, round, getCurrentQuestionId, onSer
   const lastSentRef = useRef<Record<string, number>>({});
   const lastExitSentRef = useRef<number>(0);
   const blurTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const enabledRef = useRef(enabled);
-  enabledRef.current = enabled;
 
   useEffect(() => {
     if (!enabled) return;
@@ -96,6 +94,65 @@ export function useSecurityMonitor({ enabled, round, getCurrentQuestionId, onSer
     };
 
     const onDragStart = (e: DragEvent) => e.preventDefault();
+
+    const onSelectionChange = () => {
+      const target = document.activeElement as HTMLElement | null;
+      if (target && ["INPUT", "TEXTAREA"].includes(target.tagName)) return;
+      const selection = window.getSelection();
+      if (selection && selection.toString().length > 0) {
+        selection.removeAllRanges();
+      }
+    };
+
+    let touchTimer: NodeJS.Timeout | null = null;
+    let startX = 0;
+    let startY = 0;
+
+    const onTouchStart = (e: TouchEvent) => {
+      if (e.touches.length > 1) {
+        // Multi-finger gesture / screenshot shortcut
+        report("SCREEN_CAPTURE_SIGNAL", { gesture: "multi-touch", touchCount: e.touches.length });
+        return;
+      }
+      const touch = e.touches[0];
+      if (!touch) return;
+      const target = e.target as HTMLElement | null;
+      if (target && ["INPUT", "TEXTAREA"].includes(target.tagName)) return;
+
+      startX = touch.clientX;
+      startY = touch.clientY;
+
+      if (touchTimer) {
+        clearTimeout(touchTimer);
+      }
+
+      touchTimer = setTimeout(() => {
+        touchTimer = null;
+        // User held touch for 500ms without moving -> Long Press for AI/Search
+        report("LONG_PRESS_SELECT", { x: startX, y: startY });
+      }, 500);
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      if (e.touches.length === 0) return;
+      const touch = e.touches[0];
+      const diffX = Math.abs(touch.clientX - startX);
+      const diffY = Math.abs(touch.clientY - startY);
+      // Normal scrolling allowance (>10px movement cancels the long-press timer)
+      if (diffX > 10 || diffY > 10) {
+        if (touchTimer) {
+          clearTimeout(touchTimer);
+          touchTimer = null;
+        }
+      }
+    };
+
+    const onTouchEnd = () => {
+      if (touchTimer) {
+        clearTimeout(touchTimer);
+        touchTimer = null;
+      }
+    };
 
     const onKeyDown = (e: KeyboardEvent) => {
       const key = e.key;
@@ -182,6 +239,11 @@ export function useSecurityMonitor({ enabled, round, getCurrentQuestionId, onSer
     window.addEventListener("focus", onFocus);
     document.addEventListener("fullscreenchange", onFullscreenChange);
     window.addEventListener("beforeunload", onBeforeUnload);
+    window.addEventListener("touchstart", onTouchStart, { passive: true });
+    window.addEventListener("touchmove", onTouchMove, { passive: true });
+    window.addEventListener("touchend", onTouchEnd, { passive: true });
+    window.addEventListener("touchcancel", onTouchEnd, { passive: true });
+    document.addEventListener("selectionchange", onSelectionChange);
 
     // Best-effort DevTools viewport heuristic — inherently bypassable, so we
     // only use it as one weak, low-confidence signal among many.
@@ -206,6 +268,10 @@ export function useSecurityMonitor({ enabled, round, getCurrentQuestionId, onSer
       if (devtoolsInterval) {
         clearInterval(devtoolsInterval);
       }
+      if (touchTimer) {
+        clearTimeout(touchTimer);
+        touchTimer = null;
+      }
       document.removeEventListener("contextmenu", onContextMenu);
       document.removeEventListener("copy", onCopy);
       document.removeEventListener("cut", onCut);
@@ -218,6 +284,11 @@ export function useSecurityMonitor({ enabled, round, getCurrentQuestionId, onSer
       window.removeEventListener("focus", onFocus);
       document.removeEventListener("fullscreenchange", onFullscreenChange);
       window.removeEventListener("beforeunload", onBeforeUnload);
+      window.removeEventListener("touchstart", onTouchStart);
+      window.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("touchend", onTouchEnd);
+      window.removeEventListener("touchcancel", onTouchEnd);
+      document.removeEventListener("selectionchange", onSelectionChange);
     };
   }, [enabled, round, getCurrentQuestionId, onServerResponse]);
 }

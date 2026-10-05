@@ -34,9 +34,7 @@ export const eventBus =
     return bus;
   })();
 
-if (process.env.NODE_ENV !== "production") {
-  globalForEvents.__outputHuntBus = eventBus;
-}
+globalForEvents.__outputHuntBus = eventBus;
 
 export function broadcast(event: Omit<LiveEvent, "at">) {
   const payload: LiveEvent = { ...event, at: new Date().toISOString() };

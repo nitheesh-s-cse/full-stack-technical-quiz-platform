@@ -57,10 +57,13 @@ export default function QuizRunner({
   const [terminatedLocally, setTerminatedLocally] = useState(false);
 
   const submittedRef = useRef(false);
-  const currentIndexRef = useRef(0);
-  currentIndexRef.current = currentIndex;
+  const currentIndexRef = useRef(currentIndex);
   const questionsRef = useRef(questions);
-  questionsRef.current = questions;
+
+  useEffect(() => {
+    currentIndexRef.current = currentIndex;
+    questionsRef.current = questions;
+  }, [currentIndex, questions]);
 
   const currentQuestion = questions[currentIndex];
 
@@ -115,6 +118,21 @@ export default function QuizRunner({
         const res = await fetch(`/api/quiz/state?round=${round}`, { cache: "no-store" });
         if (cancelled) return;
         if (!res.ok) {
+          if (res.status === 401 || res.status === 403) {
+            try {
+              const meRes = await fetch("/api/team/me", { cache: "no-store" });
+              if (meRes.ok) {
+                const meData = await meRes.json();
+                if (meData?.team?.teamStatus === "TERMINATED" || meData?.team?.teamStatus === "DISQUALIFIED") {
+                  setTerminatedLocally(true);
+                  onTerminated();
+                  return;
+                }
+              }
+            } catch {
+              // fallback to offline indicator if network drop
+            }
+          }
           setOnline(false);
           return;
         }
@@ -275,7 +293,11 @@ export default function QuizRunner({
           </div>
         </aside>
 
-        <section className="order-1 space-y-5 lg:order-2">
+        <section
+          className="order-1 space-y-5 lg:order-2 no-select select-none"
+          onContextMenu={(e) => e.preventDefault()}
+          onDragStart={(e) => e.preventDefault()}
+        >
           <div className="flex items-center gap-2">
             <span
               className={[
@@ -295,7 +317,12 @@ export default function QuizRunner({
 
           <CodeBlock code={currentQuestion.code} language={currentQuestion.language} />
 
-          <p className="no-select text-lg font-semibold text-slate-100">{currentQuestion.questionText}</p>
+          <p
+            className="no-select select-none text-lg font-semibold text-slate-100"
+            onContextMenu={(e) => e.preventDefault()}
+          >
+            {currentQuestion.questionText}
+          </p>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {(["A", "B", "C", "D"] as const).map((label) => (

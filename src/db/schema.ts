@@ -66,6 +66,7 @@ export const teams = pgTable("teams", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => ({
   teamCodeIdx: uniqueIndex("teams_team_code_idx").on(t.teamCode),
+  tokenHashIdx: index("teams_active_login_token_hash_idx").on(t.activeLoginTokenHash),
 }));
 
 // ---------------------------------------------------------------------------

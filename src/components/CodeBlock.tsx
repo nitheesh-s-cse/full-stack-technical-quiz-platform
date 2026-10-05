@@ -7,10 +7,12 @@ import { LANGUAGE_PRISM } from "@/lib/language-map";
 export default function CodeBlock({ code, language }: { code: string; language: string }) {
   return (
     <div
-      className="no-select overflow-hidden rounded-xl border border-slate-800 bg-[#0b0f19] shadow-inner"
+      className="no-select select-none overflow-hidden rounded-xl border border-slate-800 bg-[#0b0f19] shadow-inner"
       onCopy={(e) => e.preventDefault()}
       onCut={(e) => e.preventDefault()}
       onContextMenu={(e) => e.preventDefault()}
+      onDragStart={(e) => e.preventDefault()}
+      draggable={false}
     >
       <div className="flex items-center gap-1.5 border-b border-slate-800 bg-[#0e1420] px-4 py-2">
         <span className="h-2.5 w-2.5 rounded-full bg-red-500/70" />
@@ -29,8 +31,19 @@ export default function CodeBlock({ code, language }: { code: string; language: 
           background: "transparent",
           fontSize: "0.85rem",
           lineHeight: 1.6,
+          WebkitTouchCallout: "none",
+          WebkitUserSelect: "none",
+          userSelect: "none",
         }}
-        codeTagProps={{ className: "font-mono-code" }}
+        codeTagProps={{
+          className: "font-mono-code select-none pointer-events-none",
+          style: {
+            WebkitTouchCallout: "none",
+            WebkitUserSelect: "none",
+            userSelect: "none",
+            pointerEvents: "none",
+          },
+        }}
       >
         {code}
       </SyntaxHighlighter>
