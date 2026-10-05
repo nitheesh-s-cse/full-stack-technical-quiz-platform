@@ -189,12 +189,6 @@ export function useSecurityMonitor({ enabled, round, getCurrentQuestionId, onSer
       // If the document is already hidden, visibilitychange handles it as TAB_SWITCH.
       if (document.hidden) return;
 
-      // On mobile devices, isolated blur without document.hidden is almost always
-      // a system overlay, notification tray swipe, incoming call, or virtual keyboard.
-      // Real app navigation is captured by visibilitychange ("TAB_SWITCH").
-      if (isMobileDevice()) return;
-
-      // On desktop, debounce blur to verify if visibilitychange fires immediately after.
       if (blurTimerRef.current) {
         clearTimeout(blurTimerRef.current);
       }
@@ -202,9 +196,9 @@ export function useSecurityMonitor({ enabled, round, getCurrentQuestionId, onSer
       blurTimerRef.current = setTimeout(() => {
         blurTimerRef.current = null;
         if (!document.hidden) {
-          report("WINDOW_BLUR");
+          report("WINDOW_BLUR", { trigger: "suspected_assistant_overlay" });
         }
-      }, BLUR_DEBOUNCE_MS);
+      }, 300);
     };
 
     const onFocus = () => {

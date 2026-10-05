@@ -55,6 +55,28 @@ export default function QuizRunner({
   const [showConfirm, setShowConfirm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [terminatedLocally, setTerminatedLocally] = useState(false);
+  const [screenBlurred, setScreenBlurred] = useState(false);
+
+  useEffect(() => {
+    const handleBlur = () => setScreenBlurred(true);
+    const handleFocus = () => setScreenBlurred(false);
+    const handleVisibility = () => {
+      if (document.hidden) {
+        setScreenBlurred(true);
+      } else {
+        setScreenBlurred(false);
+      }
+    };
+
+    window.addEventListener("blur", handleBlur);
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => {
+      window.removeEventListener("blur", handleBlur);
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, []);
 
   const submittedRef = useRef(false);
   const currentIndexRef = useRef(currentIndex);
@@ -222,6 +244,37 @@ export default function QuizRunner({
 
   return (
     <div className="min-h-screen pb-10">
+      {screenBlurred && !terminatedLocally && (
+        <div
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#05070d] px-6 text-center select-none"
+          onClick={() => {
+            window.focus();
+            setScreenBlurred(false);
+          }}
+        >
+          <div className="max-w-md rounded-2xl border border-red-500/50 bg-red-950/40 p-8 shadow-2xl backdrop-blur-2xl">
+            <ShieldAlert className="mx-auto mb-4 h-14 w-14 text-red-500 animate-pulse" />
+            <h2 className="text-xl font-bold tracking-wide text-white">QUIZ SUSPENDED</h2>
+            <p className="mt-2 text-sm text-red-200">
+              Screen focus lost or assistant overlay detected. Screen contents are hidden to prevent external capture.
+            </p>
+            <p className="mt-4 text-xs text-slate-400">
+              Return focus immediately to continue. Repeated violations result in automatic termination.
+            </p>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                window.focus();
+                setScreenBlurred(false);
+              }}
+              className="mt-6 inline-flex items-center gap-2 rounded-xl bg-red-600 px-6 py-3 text-xs font-bold uppercase tracking-wider text-white shadow-lg transition hover:bg-red-500 active:scale-95"
+            >
+              Resume Quiz
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Top bar */}
       <div className="sticky top-0 z-20 border-b border-slate-800 bg-[#05070d]/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3">
