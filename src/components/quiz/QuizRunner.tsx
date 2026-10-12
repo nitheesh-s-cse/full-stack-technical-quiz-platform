@@ -342,7 +342,30 @@ export default function QuizRunner({
             onJump={setCurrentIndex}
           />
           <div className="mt-4 rounded-2xl border border-slate-800 bg-slate-900/50 p-4 text-xs text-slate-500">
-            <p>Answered: <span className="font-semibold text-emerald-400">{answeredCount}</span> / {questions.length}</p>
+            <div className="flex items-center justify-between">
+              <span className="font-semibold text-slate-400">Total Answered</span>
+              <span className="font-semibold text-emerald-400">{answeredCount} / {questions.length}</span>
+            </div>
+            <div className="mt-3 space-y-1.5 border-t border-slate-800/80 pt-2.5">
+              <p className="text-[11px] font-medium text-slate-400">Categories</p>
+              <div className="flex flex-wrap gap-1.5">
+                {Array.from(new Set(questions.map((q) => q.language))).map((lang) => {
+                  const langQs = questions.filter((q) => q.language === lang);
+                  const langAnswered = langQs.filter((q) => answers[q.questionId] !== undefined).length;
+                  return (
+                    <span
+                      key={lang}
+                      className={`inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-medium ${
+                        LANGUAGE_COLORS[lang] ?? "border-slate-700 bg-slate-800 text-slate-300"
+                      }`}
+                    >
+                      <span className="font-bold">{LANGUAGE_DISPLAY[lang] ?? lang}</span>
+                      <span className="text-[10px] opacity-75">({langAnswered}/{langQs.length})</span>
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </aside>
 

@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
   }
 
   const round = Number(body.round);
-  if (round !== 1 && round !== 2) {
+  if (round !== 1 && round !== 2 && round !== 3) {
     return NextResponse.json({ error: "Invalid round." }, { status: 400 });
   }
 
@@ -36,6 +36,14 @@ export async function POST(req: NextRequest) {
     }
     if (!settings?.round2Enabled) {
       return NextResponse.json({ error: "Round 2 access denied. Round 2 is not currently enabled." }, { status: 403 });
+    }
+  }
+  if (round === 3) {
+    if (!settings?.tieBreakerEnabled) {
+      return NextResponse.json({ error: "Tie-Breaker access denied. The Tie-Breaker round is not currently enabled." }, { status: 403 });
+    }
+    if (!team.round2CompletedAt && !team.qualifiedForRound2) {
+      return NextResponse.json({ error: "Tie-Breaker access denied. Your team must complete Round 2 first." }, { status: 403 });
     }
   }
 
@@ -62,7 +70,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No questions configured for this round yet." }, { status: 500 });
     }
     const order = buildQuestionOrder(activeQuestionRows.map((q) => q.id));
-    const durationMinutes = round === 1 ? settings!.round1DurationMinutes : settings!.round2DurationMinutes;
+    const durationMinutes =
+      round === 1
+        ? settings!.round1DurationMinutes
+        : round === 2
+        ? settings!.round2DurationMinutes
+        : (settings?.tieBreakerDurationMinutes ?? 10);
     const startedAt = new Date();
     const endsAt = new Date(startedAt.getTime() + durationMinutes * 60_000);
 
@@ -87,6 +100,7 @@ export async function POST(req: NextRequest) {
         teamStatus: "ACTIVE",
         quizStartedAt: round === 1 ? startedAt : team.quizStartedAt,
         round2StartedAt: round === 2 ? startedAt : team.round2StartedAt,
+        tieBreakerStartedAt: round === 3 ? startedAt : team.tieBreakerStartedAt,
         updatedAt: startedAt,
       })
       .where(eq(teams.id, team.id));

@@ -21,6 +21,10 @@ const KEYWORDS = new Set([
   "def", "import", "from", "as", "class", "return", "if", "elif", "else", "for", "while", "in", "is",
   "not", "and", "or", "try", "except", "finally", "with", "lambda", "yield", "pass", "raise", "print",
   "len", "range", "self", "True", "False", "None", "list", "dict", "set", "int", "str",
+  // Java
+  "boolean", "byte", "extends", "implements", "final", "finally", "try", "catch", "throw", "throws",
+  "new", "this", "super", "null", "true", "false", "instanceof", "package", "System", "out", "println",
+  "print", "String", "Integer", "Double", "Override", "ArithmeticException", "Exception",
   // HTML / General
   "doctype", "html", "head", "body", "div", "span", "script", "style", "function", "var", "let", "const"
 ]);

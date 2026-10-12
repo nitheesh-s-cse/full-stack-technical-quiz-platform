@@ -2,6 +2,7 @@ import "dotenv/config";
 import bcrypt from "bcryptjs";
 import { db, pool } from "@/db";
 import { admins, teams, questions, eventSettings } from "@/db/schema";
+import { eq } from "drizzle-orm";
 
 async function main() {
   console.log("Seeding OUTPUT HUNT database...");
@@ -80,9 +81,8 @@ async function main() {
   console.log(`Seeded ${sampleTeams.length} sample teams (TEAM001-TEAM005).`);
 
   // ---------------------------------------------------------------------
-  // Wipe & reseed questions so this script is safely re-runnable
+  // Questions Bank Setup
   // ---------------------------------------------------------------------
-  await db.delete(questions);
 
   type NewQuestion = typeof questions.$inferInsert;
   const round1: NewQuestion[] = [
@@ -365,8 +365,258 @@ async function main() {
     },
   ];
 
-  await db.insert(questions).values([...round1, ...round2]);
-  console.log(`Seeded ${round1.length} Round 1 questions and ${round2.length} Round 2 questions.`);
+  const round3: (NewQuestion & { id: number })[] = [
+    {
+      id: 101,
+      round: 3,
+      language: "JAVA",
+      difficulty: "ADVANCED",
+      orderIndex: 1,
+      code: `public class Q1 {
+    public static void main(String[] args) {
+        String a = "Java";
+        String b = "Java";
+        String c = new String("Java");
+        String d = c.intern();
+
+        System.out.println(a == b);
+        System.out.println(a == c);
+        System.out.println(a == d);
+        System.out.println(a.equals(c));
+        System.out.println(c == d);
+
+        int count = 0;
+        if (a == b) count++;
+        if (a == c) count++;
+        if (a == d) count++;
+        if (a.equals(c)) count++;
+        if (c.equals(d)) count++;
+        if (c == d) count++;
+
+        System.out.println("Count = " + count);
+        System.out.println("Done");
+    }
+}`,
+      questionText: "What will be the output of this Java program?",
+      optionA: "true\ntrue\ntrue\ntrue\ntrue\nCount = 6\nDone",
+      optionB: "true\nfalse\ntrue\ntrue\nfalse\nCount = 4\nDone",
+      optionC: "true\nfalse\nfalse\ntrue\nfalse\nCount = 3\nDone",
+      optionD: "true\nfalse\ntrue\nfalse\ntrue\nCount = 3\nDone",
+      correctOption: "B",
+      explanation: "a == b is true (both point to literal 'Java' in the string pool). a == c is false (c is a distinct heap object). a == d is true (d is c.intern(), returning the pooled literal). a.equals(c) is true (same content). c == d is false (heap object vs pooled object). Count increments 4 times: for a==b, a==d, a.equals(c), and c.equals(d).",
+      marks: 2,
+      negativeMarks: 1,
+    },
+    {
+      id: 102,
+      round: 3,
+      language: "JAVA",
+      difficulty: "ADVANCED",
+      orderIndex: 2,
+      code: `public class Q2 {
+    static void show(int x) {
+        System.out.println("int " + x);
+    }
+
+    static void show(double x) {
+        System.out.println("double " + x);
+    }
+
+    static void show(Integer x) {
+        System.out.println("Integer " + x);
+    }
+
+    public static void main(String[] args) {
+        byte b = 2;
+        char c = 'A';
+        Integer val = 10;
+
+        show(5);
+        show(5.0);
+        show(val);
+        show(b);
+        show(c);
+    }
+}`,
+      questionText: "What will be the output of this Java program?",
+      optionA: "int 5\ndouble 5.0\nInteger 10\nint 2\nint 65",
+      optionB: "int 5\ndouble 5.0\nInteger 10\ndouble 2.0\nint A",
+      optionC: "int 5\ndouble 5.0\nint 10\nint 2\nchar A",
+      optionD: "int 5\ndouble 5.0\nInteger 10\ndouble 2.0\nint 65",
+      correctOption: "A",
+      explanation: "5 matches show(int). 5.0 matches show(double). val is of type Integer, matching show(Integer) directly. For b (byte) and c (char), Java prefers primitive widening to int over boxing or widening to double. 'A' widens to int ASCII 65.",
+      marks: 2,
+      negativeMarks: 1,
+    },
+    {
+      id: 103,
+      round: 3,
+      language: "JAVA",
+      difficulty: "ADVANCED",
+      orderIndex: 3,
+      code: `class Parent {
+    void display() {
+        System.out.println("Parent");
+    }
+    void print() { System.out.println("P"); }
+}
+class Child extends Parent {
+    void display() {
+        System.out.println("Child");
+    }
+    void print() { System.out.println("C"); }
+}
+public class Q3 {
+    public static void main(String[] args) {
+        Parent p1 = new Child();
+        p1.display();
+        p1.print();
+
+        Parent p2 = new Parent();
+        p2.display();
+        p2.print();
+        System.out.println("Done");
+        System.out.println("End");
+    }
+}`,
+      questionText: "What will be the output of this Java program?",
+      optionA: "Parent\nP\nParent\nP\nDone\nEnd",
+      optionB: "Child\nP\nParent\nP\nDone\nEnd",
+      optionC: "Child\nC\nParent\nP\nDone\nEnd",
+      optionD: "Child\nC\nChild\nC\nDone\nEnd",
+      correctOption: "C",
+      explanation: "Dynamic method dispatch executes Child's overridden display() and print() methods for p1 (Child instance assigned to Parent reference), printing 'Child' and 'C'. For p2 (Parent instance), Parent's methods are invoked, printing 'Parent' and 'P'.",
+      marks: 2,
+      negativeMarks: 1,
+    },
+    {
+      id: 104,
+      round: 3,
+      language: "JAVA",
+      difficulty: "ADVANCED",
+      orderIndex: 4,
+      code: `public class Q4 {
+    static int compute() {
+        System.out.print("A ");
+        try {
+            int x = 10 / 0;
+            return x;
+        } catch (ArithmeticException e) {
+            System.out.print("B ");
+            return 20;
+        } finally {
+            System.out.print("C ");
+        }
+    }
+
+    public static void main(String[] args) {
+        int result = compute();
+
+        System.out.println("D " + result);
+        System.out.println("E");
+        System.out.println("F");
+        System.out.println("G");
+        System.out.println("H");
+        System.out.println("I");
+    }
+}`,
+      questionText: "What will be the output of this Java program?",
+      optionA: "A C B D 20\nE\nF\nG\nH\nI",
+      optionB: "A B C D 0\nE\nF\nG\nH\nI",
+      optionC: "A B D 20 C\nE\nF\nG\nH\nI",
+      optionD: "A B C D 20\nE\nF\nG\nH\nI",
+      correctOption: "D",
+      explanation: "Inside compute(), 'A ' prints first. 10/0 throws ArithmeticException, caught by the catch block which prints 'B ' and prepares to return 20. The finally block executes before control returns, printing 'C '. In main(), 'D 20' is printed on the same line, followed by E, F, G, H, I.",
+      marks: 2,
+      negativeMarks: 1,
+    },
+    {
+      id: 105,
+      round: 3,
+      language: "JAVA",
+      difficulty: "ADVANCED",
+      orderIndex: 5,
+      code: `public class Q5 {
+    static int count = 0;
+
+    static int update() {
+        return ++count;
+    }
+    public static void main(String[] args) {
+        int v1 = update();
+        int v2 = update();
+        System.out.println(v1 + " " + v2);
+
+        int a = ++count;
+        System.out.println(a + " " + count);
+        count++;
+        System.out.println(count);
+        int sum = 0;
+        for (int i = 0; i < 3; i++) {
+            sum += update();
+        }
+        System.out.println("Sum = " + sum);
+        System.out.println("Count = " + count);
+        System.out.println("Done");
+        System.out.println("End");
+    }
+}`,
+      questionText: "What will be the output of this Java program?",
+      optionA: "1 2\n3 3\n4\nSum = 18\nCount = 7\nDone\nEnd",
+      optionB: "1 2\n3 4\n4\nSum = 15\nCount = 6\nDone\nEnd",
+      optionC: "1 2\n2 3\n3\nSum = 18\nCount = 6\nDone\nEnd",
+      optionD: "1 2\n3 3\n3\nSum = 15\nCount = 7\nDone\nEnd",
+      correctOption: "A",
+      explanation: "update() pre-increments count. v1=1, v2=2, count=2 -> prints '1 2'. ++count makes count=3, a=3 -> prints '3 3'. count++ makes count=4 -> prints '4'. The loop calls update() 3 times: count becomes 5, 6, 7; sum = 5+6+7 = 18. Prints Sum = 18, Count = 7, Done, End.",
+      marks: 2,
+      negativeMarks: 1,
+    },
+  ];
+
+  // Automated 25-line program validation
+  for (const q of round3) {
+    const lines = q.code.replace(/\r\n/g, "\n").split("\n").length;
+    if (lines !== 25) {
+      throw new Error(`CRITICAL VALIDATION ERROR: Question ID ${q.id} (Order ${q.orderIndex}) does not have 25 lines! Actual line count: ${lines}`);
+    }
+  }
+  console.log("Validation passed: All 5 Java Tie-Breaker programs have exactly 25 physical lines.");
+
+  const existingR1 = await db.select().from(questions).where(eq(questions.round, 1));
+  if (existingR1.length === 0) {
+    await db.insert(questions).values([...round1, ...round2]);
+    console.log(`Seeded ${round1.length} Round 1 questions and ${round2.length} Round 2 questions.`);
+  } else {
+    console.log(`Preserved existing Round 1 & Round 2 questions (${existingR1.length} R1 questions present).`);
+  }
+
+  // Idempotently upsert Round 3 Java questions
+  for (const q of round3) {
+    await db
+      .insert(questions)
+      .values(q)
+      .onConflictDoUpdate({
+        target: questions.id,
+        set: {
+          round: q.round,
+          language: q.language,
+          difficulty: q.difficulty,
+          code: q.code,
+          questionText: q.questionText,
+          optionA: q.optionA,
+          optionB: q.optionB,
+          optionC: q.optionC,
+          optionD: q.optionD,
+          correctOption: q.correctOption,
+          explanation: q.explanation,
+          marks: q.marks,
+          negativeMarks: q.negativeMarks,
+          orderIndex: q.orderIndex,
+          isActive: true,
+        },
+      });
+  }
+  console.log(`Seeded/Updated ${round3.length} Round 3 Java Tie-Breaker questions (IDs 101-105).`);
 
   console.log("Seeding complete.");
 }

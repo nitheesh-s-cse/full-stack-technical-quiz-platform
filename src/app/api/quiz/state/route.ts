@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
   if (!team) return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
 
   const round = Number(req.nextUrl.searchParams.get("round"));
-  if (round !== 1 && round !== 2) return NextResponse.json({ error: "Invalid round." }, { status: 400 });
+  if (round !== 1 && round !== 2 && round !== 3) return NextResponse.json({ error: "Invalid round." }, { status: 400 });
 
   const session = await getActiveSessionForTeamRound(team.id, round);
   if (!session) return NextResponse.json({ error: "Quiz not started for this round." }, { status: 404 });

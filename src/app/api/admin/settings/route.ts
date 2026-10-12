@@ -28,6 +28,7 @@ export async function POST(req: NextRequest) {
   if (typeof body.round2Enabled === "boolean") patch.round2Enabled = body.round2Enabled;
   if (Number.isFinite(Number(body.round1DurationMinutes))) patch.round1DurationMinutes = Number(body.round1DurationMinutes);
   if (Number.isFinite(Number(body.round2DurationMinutes))) patch.round2DurationMinutes = Number(body.round2DurationMinutes);
+  if (Number.isFinite(Number(body.tieBreakerDurationMinutes))) patch.tieBreakerDurationMinutes = Number(body.tieBreakerDurationMinutes);
   if (typeof body.tieBreakerEnabled === "boolean") patch.tieBreakerEnabled = body.tieBreakerEnabled;
   if (typeof body.tieBreakerNote === "string") patch.tieBreakerNote = body.tieBreakerNote;
 

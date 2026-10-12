@@ -18,6 +18,7 @@ export type AdminTeamRow = {
   currentRound: number;
   scoreRound1: number;
   scoreRound2: number;
+  scoreTieBreaker?: number;
   totalScore: number;
   malpracticeCount: number;
   online: boolean;
@@ -25,6 +26,7 @@ export type AdminTeamRow = {
   terminationReason: string | null;
   round1: { status: string; endsAt: string; startedAt: string; score: number } | null;
   round2: { status: string; endsAt: string; startedAt: string; score: number } | null;
+  round3?: { status: string; endsAt: string; startedAt: string; score: number } | null;
 };
 
 const STATUS_COLORS: Record<string, string> = {
@@ -84,7 +86,7 @@ export default function TeamsTable({
         </thead>
         <tbody>
           {teams.map((t) => {
-            const activeRound = t.currentRound === 2 ? t.round2 : t.round1;
+            const activeRound = t.currentRound === 3 ? t.round3 : t.currentRound === 2 ? t.round2 : t.round1;
             return (
               <tr key={t.id} className="border-b border-slate-900 hover:bg-slate-900/40">
                 <td className="px-4 py-3">
@@ -95,7 +97,7 @@ export default function TeamsTable({
                 </td>
                 <td className="px-4 py-3 text-xs text-slate-400">{t.members.length} members</td>
                 <td className="px-4 py-3 text-xs text-slate-300">
-                  Round {t.currentRound}
+                  {t.currentRound === 3 ? "Tie-Breaker" : `Round ${t.currentRound}`}
                   {t.qualifiedForRound2 && <span className="ml-1 text-purple-400">★</span>}
                 </td>
                 <td className="px-4 py-3">
@@ -105,7 +107,7 @@ export default function TeamsTable({
                 </td>
                 <td className="px-4 py-3 font-mono-code text-slate-200">
                   {t.scoreRound1}
-                  {t.round2 ? ` + ${t.scoreRound2}` : ""} = {t.totalScore}
+                  {t.round2 ? ` + ${t.scoreRound2}` : ""}{t.round3 || (t.scoreTieBreaker ?? 0) > 0 ? ` (TB: ${t.scoreTieBreaker ?? 0})` : ""} = {t.totalScore}
                 </td>
                 <td className="px-4 py-3">
                   <span className={t.malpracticeCount >= 3 ? "font-bold text-red-400" : t.malpracticeCount > 0 ? "text-amber-400" : "text-slate-500"}>

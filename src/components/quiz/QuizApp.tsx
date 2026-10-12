@@ -17,15 +17,22 @@ type PublicTeam = {
   currentRound: number;
   scoreRound1: number;
   scoreRound2: number;
+  scoreTieBreaker?: number;
   totalScore: number;
   malpracticeCount: number;
 };
 
 type MeResponse = {
   team: PublicTeam | null;
-  settings?: { round1Enabled: boolean; round2Enabled: boolean };
+  settings?: {
+    round1Enabled: boolean;
+    round2Enabled: boolean;
+    tieBreakerEnabled?: boolean;
+    tieBreakerDurationMinutes?: number;
+  };
   round1?: { status: string; endsAt: string } | null;
   round2?: { status: string; endsAt: string } | null;
+  round3?: { status: string; endsAt: string } | null;
 };
 
 type StartResponse = {
@@ -45,7 +52,7 @@ export default function QuizApp() {
   const [phase, setPhase] = useState<Phase>("loading");
   const [team, setTeam] = useState<PublicTeam | null>(null);
   const [meInfo, setMeInfo] = useState<MeResponse | null>(null);
-  const [targetRound, setTargetRound] = useState<1 | 2>(1);
+  const [targetRound, setTargetRound] = useState<1 | 2 | 3>(1);
   const [startData, setStartData] = useState<StartResponse | null>(null);
   const [initialAnswers, setInitialAnswers] = useState<Record<number, string>>({});
   const [error, setError] = useState<string | null>(null);
@@ -72,6 +79,7 @@ export default function QuizApp() {
 
     const r1 = data.round1;
     const r2 = data.round2;
+    const r3 = data.round3;
 
     if (!r1 || r1.status === "ACTIVE") {
       setTargetRound(1);
@@ -86,6 +94,24 @@ export default function QuizApp() {
         setPhase(data.settings?.round2Enabled || r2 ? "lobby" : "waiting");
         return;
       }
+
+      // Round 2 finished: check if Round 3 (Tie-Breaker) is active or enabled
+      if (r3 && r3.status === "ACTIVE") {
+        setTargetRound(3);
+        setPhase("lobby");
+        return;
+      }
+
+      if (data.settings?.tieBreakerEnabled) {
+        if (!r3) {
+          setTargetRound(3);
+          setPhase("lobby");
+          return;
+        }
+        setPhase("result");
+        return;
+      }
+
       setPhase("result");
       return;
     }
@@ -184,7 +210,9 @@ export default function QuizApp() {
           <p className="mt-3 text-sm text-slate-400">
             {targetRound === 1
               ? "Round 1 has not been enabled yet. This page will update automatically."
-              : "Your team is qualified for Round 2. Waiting for the organizer to enable it."}
+              : targetRound === 2
+              ? "Your team is qualified for Round 2. Waiting for the organizer to enable it."
+              : "Waiting for the organizer to enable the Java Tie-Breaker round."}
           </p>
           <p className="mt-4 text-xs text-slate-600">Team: {team?.teamName} ({team?.teamCode})</p>
         </div>
@@ -199,7 +227,10 @@ export default function QuizApp() {
           <h1 className="text-2xl font-bold text-white">Welcome, {team?.teamName}</h1>
           <p className="mt-1 text-sm text-slate-500">{team?.teamCode} · {team?.members.join(", ")}</p>
           <p className="mt-6 text-sm text-slate-400">
-            You are about to begin <span className="font-semibold text-emerald-400">Round {targetRound}</span>.
+            You are about to begin{" "}
+            <span className="font-semibold text-emerald-400">
+              {targetRound === 3 ? "Java Tie-Breaker Round (Round 3)" : `Round ${targetRound}`}
+            </span>.
           </p>
           {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
           <button
@@ -221,8 +252,14 @@ export default function QuizApp() {
       <RulesGate
         round={targetRound}
         teamName={team?.teamName ?? ""}
-        durationMinutes={targetRound === 1 ? 30 : 20}
-        questionCount={targetRound === 1 ? 20 : 10}
+        durationMinutes={
+          targetRound === 1
+            ? 30
+            : targetRound === 2
+            ? 20
+            : (meInfo?.settings?.tieBreakerDurationMinutes ?? 10)
+        }
+        questionCount={targetRound === 1 ? 20 : targetRound === 2 ? 10 : 5}
         onStart={handleStart}
       />
     );
@@ -259,7 +296,7 @@ export default function QuizApp() {
             </p>
           )}
 
-          <div className="mt-6 grid grid-cols-2 gap-4 text-left text-sm">
+          <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-4 text-left text-sm">
             <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4">
               <p className="text-slate-500">Round 1 Score</p>
               <p className="text-xl font-bold text-white">{meInfo?.team?.scoreRound1 ?? team?.scoreRound1 ?? 0}</p>
@@ -268,11 +305,29 @@ export default function QuizApp() {
               <p className="text-slate-500">Round 2 Score</p>
               <p className="text-xl font-bold text-white">{meInfo?.team?.scoreRound2 ?? team?.scoreRound2 ?? 0}</p>
             </div>
+            <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4 col-span-2 sm:col-span-1">
+              <p className="text-slate-500">Tie-Breaker Score</p>
+              <p className="text-xl font-bold text-amber-300">{meInfo?.team?.scoreTieBreaker ?? team?.scoreTieBreaker ?? 0}</p>
+            </div>
           </div>
+
+          {meInfo?.settings?.tieBreakerEnabled && (!meInfo?.round3 || meInfo?.round3?.status === "ACTIVE") && (
+            <button
+              onClick={() => {
+                setTargetRound(3);
+                setPhase("lobby");
+              }}
+              className="mt-6 w-full rounded-lg bg-amber-500 px-5 py-3 font-bold text-slate-950 transition hover:bg-amber-400 shadow-lg shadow-amber-950/40"
+            >
+              Enter Java Tie-Breaker Round
+            </button>
+          )}
 
           <p className="mt-6 text-xs text-slate-500">
             {team?.qualifiedForRound2 && !meInfo?.round2
               ? "If you qualify for Round 2, please wait for the organizer to announce results and enable the next round."
+              : meInfo?.settings?.tieBreakerEnabled && !meInfo?.round3
+              ? "Tie-Breaker mode is currently active! Click above to resolve tie scores."
               : "Thank you for participating in OUTPUT HUNT! Please wait for the organizer's announcement."}
           </p>
 

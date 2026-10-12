@@ -13,11 +13,14 @@ export function publicTeam(team: Team) {
     currentRound: team.currentRound,
     scoreRound1: team.scoreRound1,
     scoreRound2: team.scoreRound2,
+    scoreTieBreaker: team.scoreTieBreaker,
     totalScore: team.totalScore,
     malpracticeCount: team.malpracticeCount,
     quizStartedAt: team.quizStartedAt,
     quizCompletedAt: team.quizCompletedAt,
     round2StartedAt: team.round2StartedAt,
     round2CompletedAt: team.round2CompletedAt,
+    tieBreakerStartedAt: team.tieBreakerStartedAt,
+    tieBreakerCompletedAt: team.tieBreakerCompletedAt,
   };
 }

@@ -11,13 +11,14 @@ type Row = {
   score: number;
   scoreRound1?: number;
   scoreRound2?: number;
+  scoreTieBreaker?: number;
   malpracticeCount: number;
   status: string;
   qualifiedForRound2?: boolean;
 };
 
 export default function LeaderboardPanel() {
-  const [mode, setMode] = useState<"round1" | "round2" | "final">("final");
+  const [mode, setMode] = useState<"round1" | "round2" | "tiebreaker" | "final">("final");
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -36,13 +37,13 @@ export default function LeaderboardPanel() {
           <Trophy className="h-4 w-4 text-amber-400" /> Leaderboard
         </h3>
         <div className="flex gap-1.5 rounded-lg border border-slate-800 bg-slate-950 p-1 text-xs">
-          {(["round1", "round2", "final"] as const).map((m) => (
+          {(["round1", "round2", "tiebreaker", "final"] as const).map((m) => (
             <button
               key={m}
               onClick={() => setMode(m)}
               className={`rounded-md px-3 py-1.5 font-semibold ${mode === m ? "bg-emerald-500 text-slate-950" : "text-slate-400"}`}
             >
-              {m === "round1" ? "Round 1" : m === "round2" ? "Round 2" : "Final"}
+              {m === "round1" ? "Round 1" : m === "round2" ? "Round 2" : m === "tiebreaker" ? "Tie-Breaker" : "Final"}
             </button>
           ))}
         </div>
@@ -59,7 +60,8 @@ export default function LeaderboardPanel() {
                 <th className="py-2 pr-4">Team</th>
                 {mode === "final" && <th className="py-2 pr-4">R1</th>}
                 {mode === "final" && <th className="py-2 pr-4">R2</th>}
-                <th className="py-2 pr-4">Score</th>
+                {mode === "final" && <th className="py-2 pr-4">TB</th>}
+                <th className="py-2 pr-4">{mode === "tiebreaker" ? "TB Score" : "Score"}</th>
                 <th className="py-2 pr-4">Malpractice</th>
                 <th className="py-2 pr-4">Status</th>
               </tr>
@@ -74,6 +76,7 @@ export default function LeaderboardPanel() {
                   </td>
                   {mode === "final" && <td className="py-2.5 pr-4 font-mono-code">{r.scoreRound1}</td>}
                   {mode === "final" && <td className="py-2.5 pr-4 font-mono-code">{r.scoreRound2}</td>}
+                  {mode === "final" && <td className="py-2.5 pr-4 font-mono-code text-amber-300">{r.scoreTieBreaker ?? 0}</td>}
                   <td className="py-2.5 pr-4 font-mono-code font-bold text-emerald-400">{r.score}</td>
                   <td className="py-2.5 pr-4">{r.malpracticeCount}/3</td>
                   <td className="py-2.5 pr-4 text-xs text-slate-400">{r.status}</td>
@@ -81,7 +84,7 @@ export default function LeaderboardPanel() {
               ))}
               {rows.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="py-8 text-center text-slate-600">
+                  <td colSpan={mode === "final" ? 8 : 6} className="py-8 text-center text-slate-600">
                     No completed submissions yet for this view.
                   </td>
                 </tr>

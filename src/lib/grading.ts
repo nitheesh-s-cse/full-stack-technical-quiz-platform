@@ -88,9 +88,12 @@ export async function finalizeSession(
     if (session.round === 1) {
       patch.scoreRound1 = score;
       patch.quizCompletedAt = now;
-    } else {
+    } else if (session.round === 2) {
       patch.scoreRound2 = score;
       patch.round2CompletedAt = now;
+    } else if (session.round === 3) {
+      patch.scoreTieBreaker = score;
+      patch.tieBreakerCompletedAt = now;
     }
     const newTotal = (session.round === 1 ? score : team.scoreRound1) + (session.round === 2 ? score : team.scoreRound2);
     patch.totalScore = newTotal;

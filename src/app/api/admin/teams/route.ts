@@ -28,6 +28,7 @@ export async function GET(req: NextRequest) {
     const sessions = sessionsByTeam.get(team.id) ?? [];
     const round1 = sessions.find((s) => s.round === 1) ?? null;
     const round2 = sessions.find((s) => s.round === 2) ?? null;
+    const round3 = sessions.find((s) => s.round === 3) ?? null;
     const online = team.lastSeenAt ? now - new Date(team.lastSeenAt).getTime() < ONLINE_WINDOW_MS : false;
 
     return {
@@ -45,6 +46,7 @@ export async function GET(req: NextRequest) {
       currentRound: team.currentRound,
       scoreRound1: team.scoreRound1,
       scoreRound2: team.scoreRound2,
+      scoreTieBreaker: team.scoreTieBreaker,
       totalScore: team.totalScore,
       malpracticeCount: team.malpracticeCount,
       online,
@@ -52,6 +54,7 @@ export async function GET(req: NextRequest) {
       terminationReason: team.terminationReason,
       round1: round1 && { status: round1.status, endsAt: round1.endsAt, startedAt: round1.startedAt, score: round1.score },
       round2: round2 && { status: round2.status, endsAt: round2.endsAt, startedAt: round2.startedAt, score: round2.score },
+      round3: round3 && { status: round3.status, endsAt: round3.endsAt, startedAt: round3.startedAt, score: round3.score },
     };
   });
 

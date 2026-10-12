@@ -29,7 +29,7 @@ export default function AnswerCard({ label, text, selected, disabled, onSelect }
       >
         {label}
       </span>
-      <span className="font-mono-code text-sm text-slate-200 sm:text-base">{text}</span>
+      <span className="font-mono-code whitespace-pre-wrap text-sm text-slate-200 sm:text-base">{text}</span>
     </button>
   );
 }

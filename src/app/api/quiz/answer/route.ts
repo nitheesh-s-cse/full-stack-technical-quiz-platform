@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
   const questionId = Number(body.questionId);
   const selectedLabel = String(body.selectedLabel ?? "").toUpperCase();
 
-  if ((round !== 1 && round !== 2) || !questionId || !OPTION_LABELS.includes(selectedLabel as never)) {
+  if ((round !== 1 && round !== 2 && round !== 3) || !questionId || !OPTION_LABELS.includes(selectedLabel as never)) {
     return NextResponse.json({ error: "Invalid answer payload." }, { status: 400 });
   }
 

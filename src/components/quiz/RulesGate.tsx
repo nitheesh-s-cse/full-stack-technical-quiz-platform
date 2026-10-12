@@ -43,7 +43,9 @@ export default function RulesGate({ round, teamName, durationMinutes, questionCo
   return (
     <div className="mx-auto flex min-h-screen max-w-2xl flex-col justify-center px-4 py-16">
       <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-8 fade-in">
-        <h1 className="text-2xl font-bold text-white">Round {round} — Ready to begin, {teamName}?</h1>
+        <h1 className="text-2xl font-bold text-white">
+          {round === 3 ? "Java Tie-Breaker Round" : `Round ${round}`} — Ready to begin, {teamName}?
+        </h1>
         <p className="mt-1 text-sm text-slate-500">
           {questionCount} questions · {durationMinutes} minutes · server-timed &amp; server-scored
         </p>

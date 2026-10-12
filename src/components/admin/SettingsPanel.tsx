@@ -9,6 +9,7 @@ export type Settings = {
   round2Enabled: boolean;
   round2DurationMinutes: number;
   tieBreakerEnabled: boolean;
+  tieBreakerDurationMinutes?: number;
   tieBreakerNote: string | null;
 };
 
@@ -85,22 +86,46 @@ export default function SettingsPanel({
       />
 
       <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-5 lg:col-span-2">
-        <h3 className="mb-1 font-semibold text-slate-100">Tie-Breaker Mode</h3>
-        <p className="mb-4 text-xs text-slate-500">
-          Enable when the final leaderboard has tied scores. Announce the tie-breaker question verbally or on
-          screen, and use this note field to record it for the audit trail.
-        </p>
+        <div className="mb-4 flex items-center justify-between">
+          <div>
+            <h3 className="mb-1 font-semibold text-slate-100">Java Tie-Breaker Round (Round 3)</h3>
+            <p className="text-xs text-slate-500">
+              Enable when the leaderboard has tied scores to unlock the 5-question Java Tie-Breaker round for qualified teams.
+            </p>
+          </div>
+          <span className={`rounded-full px-3 py-1 text-xs font-semibold ${local.tieBreakerEnabled ? "bg-amber-500/20 text-amber-300" : "bg-slate-700 text-slate-400"}`}>
+            {local.tieBreakerEnabled ? "ENABLED" : "DISABLED"}
+          </span>
+        </div>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <button
             onClick={() => save({ tieBreakerEnabled: !local.tieBreakerEnabled })}
-            className={`flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-semibold ${
+            className={`flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-semibold transition ${
               local.tieBreakerEnabled
-                ? "border-amber-500/50 bg-amber-500/10 text-amber-300"
-                : "border-slate-700 text-slate-400"
+                ? "border-amber-500/50 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20"
+                : "border-slate-700 text-slate-400 hover:border-slate-500"
             }`}
           >
             <Power className="h-4 w-4" /> {local.tieBreakerEnabled ? "Tie-Breaker ON" : "Tie-Breaker OFF"}
           </button>
+
+          <div className="flex items-center gap-2">
+            <label className="text-xs text-slate-400 whitespace-nowrap">Duration (min):</label>
+            <input
+              type="number"
+              min={1}
+              value={local.tieBreakerDurationMinutes ?? 10}
+              onChange={(e) => setLocal((p) => ({ ...p, tieBreakerDurationMinutes: Number(e.target.value) }))}
+              className="w-20 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-200 outline-none focus:ring-2 focus:ring-amber-500/40"
+            />
+            <button
+              onClick={() => save({ tieBreakerDurationMinutes: local.tieBreakerDurationMinutes ?? 10 })}
+              className="flex items-center gap-1.5 rounded-lg bg-slate-800 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-700"
+            >
+              <Save className="h-3.5 w-3.5" /> Save
+            </button>
+          </div>
+
           <input
             value={local.tieBreakerNote ?? ""}
             onChange={(e) => setLocal((p) => ({ ...p, tieBreakerNote: e.target.value }))}
@@ -111,7 +136,7 @@ export default function SettingsPanel({
             onClick={() => save({ tieBreakerNote: local.tieBreakerNote })}
             className="flex items-center gap-1.5 rounded-lg bg-slate-800 px-4 py-2 text-sm font-semibold text-slate-200 hover:bg-slate-700"
           >
-            <Save className="h-3.5 w-3.5" /> Save
+            <Save className="h-3.5 w-3.5" /> Save Note
           </button>
         </div>
       </div>

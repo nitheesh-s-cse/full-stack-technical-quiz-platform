@@ -4,7 +4,7 @@ import { useEffect, useState, use as usePromise } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ShieldAlert, CheckCircle2, XCircle, ShieldCheck, Pencil, Trash2 } from "lucide-react";
-import { LANGUAGE_DISPLAY } from "@/lib/language-map";
+import { LANGUAGE_COLORS, LANGUAGE_DISPLAY } from "@/lib/language-map";
 import ReinstateModal from "@/components/admin/ReinstateModal";
 import EditTeamModal from "@/components/admin/EditTeamModal";
 import DeleteTeamModal from "@/components/admin/DeleteTeamModal";
@@ -60,6 +60,7 @@ type TeamDetail = {
   currentRound: number;
   scoreRound1: number;
   scoreRound2: number;
+  scoreTieBreaker?: number;
   totalScore: number;
   malpracticeCount: number;
   terminationReason: string | null;
@@ -147,9 +148,10 @@ export default function TeamDetailPage({ params }: { params: Promise<{ id: strin
           </div>
         </div>
 
-        <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-5">
           <Stat label="Round 1 Score" value={team.scoreRound1} />
           <Stat label="Round 2 Score" value={team.scoreRound2} />
+          <Stat label="Tie-Breaker" value={team.scoreTieBreaker ?? 0} />
           <Stat label="Total Score" value={team.totalScore} accent="text-emerald-400" />
           <Stat label="Malpractice" value={team.malpracticeCount} accent={team.malpracticeCount > 0 ? "text-red-400" : undefined} suffix="/3" />
         </div>
@@ -213,21 +215,48 @@ export default function TeamDetailPage({ params }: { params: Promise<{ id: strin
         <div key={r.round} className="mb-6 rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
           <button onClick={() => setExpandedRound(expandedRound === r.round ? null : r.round)} className="flex w-full items-center justify-between">
             <h2 className="font-semibold text-slate-100">
-              Round {r.round} — {r.status} — Score {r.score}
+              {r.round === 3 ? "Java Tie-Breaker (Round 3)" : `Round ${r.round}`} — {r.status} — Score {r.score}
             </h2>
             <span className="text-xs text-slate-500">
               {r.questions.filter((q) => q.selectedLabel).length}/{r.questions.length} answered
             </span>
           </button>
 
+          <div className="mt-2.5 flex flex-wrap gap-1.5">
+            {Array.from(new Set(r.questions.map((q) => q.language))).map((lang) => {
+              const langQs = r.questions.filter((q) => q.language === lang);
+              const langCorrect = langQs.filter((q) => q.isCorrect).length;
+              return (
+                <span
+                  key={lang}
+                  className={`inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-medium ${
+                    LANGUAGE_COLORS[lang] ?? "border-slate-700 bg-slate-800 text-slate-300"
+                  }`}
+                >
+                  <span className="font-bold">{LANGUAGE_DISPLAY[lang] ?? lang}</span>
+                  <span className="text-[10px] opacity-75">({langCorrect}/{langQs.length} correct)</span>
+                </span>
+              );
+            })}
+          </div>
+
           {expandedRound === r.round && (
             <div className="mt-4 space-y-3">
               {r.questions.map((q) => (
                 <div key={q.questionId} className="rounded-lg border border-slate-800 bg-slate-950/50 p-4">
                   <div className="mb-2 flex items-center justify-between">
-                    <p className="text-xs font-semibold text-slate-400">
-                      Q{q.position} · {LANGUAGE_DISPLAY[q.language] ?? q.language} · {q.difficulty}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-semibold text-slate-400">Q{q.position}</span>
+                      <span
+                        className={[
+                          "rounded border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide",
+                          LANGUAGE_COLORS[q.language] ?? "border-slate-700 bg-slate-800 text-slate-300",
+                        ].join(" ")}
+                      >
+                        {LANGUAGE_DISPLAY[q.language] ?? q.language}
+                      </span>
+                      <span className="text-xs text-slate-500">· {q.difficulty}</span>
+                    </div>
                     {q.selectedLabel ? (
                       q.isCorrect ? (
                         <span className="flex items-center gap-1 text-xs font-semibold text-emerald-400">

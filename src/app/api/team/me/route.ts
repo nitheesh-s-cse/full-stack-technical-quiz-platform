@@ -22,14 +22,18 @@ export async function GET(req: NextRequest) {
   const sessions = await db.select().from(quizSessions).where(eq(quizSessions.teamId, team.id));
   const round1 = sessions.find((s) => s.round === 1);
   const round2 = sessions.find((s) => s.round === 2);
+  const round3 = sessions.find((s) => s.round === 3);
 
   return NextResponse.json({
     team: publicTeam(team),
     settings: {
       round1Enabled: settings?.round1Enabled ?? false,
       round2Enabled: settings?.round2Enabled ?? false,
+      tieBreakerEnabled: settings?.tieBreakerEnabled ?? false,
+      tieBreakerDurationMinutes: settings?.tieBreakerDurationMinutes ?? 10,
     },
     round1: round1 ? { status: round1.status, endsAt: round1.endsAt } : null,
     round2: round2 ? { status: round2.status, endsAt: round2.endsAt } : null,
+    round3: round3 ? { status: round3.status, endsAt: round3.endsAt } : null,
   });
 }

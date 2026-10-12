@@ -55,6 +55,7 @@ export const teams = pgTable("teams", {
   round2CompletedAt: timestamp("round2_completed_at", { withTimezone: true }),
   scoreRound1: integer("score_round_1").notNull().default(0),
   scoreRound2: integer("score_round_2").notNull().default(0),
+  scoreTieBreaker: integer("score_tie_breaker").notNull().default(0),
   totalScore: integer("total_score").notNull().default(0),
   malpracticeCount: integer("malpractice_count").notNull().default(0),
   teamStatus: varchar("team_status", { length: 32 }).notNull().default("REGISTERED"),
@@ -62,6 +63,8 @@ export const teams = pgTable("teams", {
   deviceInfo: text("device_info"),
   lastSeenAt: timestamp("last_seen_at", { withTimezone: true }),
   terminationReason: text("termination_reason"),
+  tieBreakerStartedAt: timestamp("tie_breaker_started_at", { withTimezone: true }),
+  tieBreakerCompletedAt: timestamp("tie_breaker_completed_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => ({
@@ -172,6 +175,7 @@ export const eventSettings = pgTable("event_settings", {
   round2Enabled: boolean("round2_enabled").notNull().default(false),
   round2DurationMinutes: integer("round2_duration_minutes").notNull().default(20),
   tieBreakerEnabled: boolean("tie_breaker_enabled").notNull().default(false),
+  tieBreakerDurationMinutes: integer("tie_breaker_duration_minutes").notNull().default(10),
   tieBreakerNote: text("tie_breaker_note"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });

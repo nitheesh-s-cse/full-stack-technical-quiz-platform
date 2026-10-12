@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
   }
   const round = Number(body.round);
-  if (round !== 1 && round !== 2) return NextResponse.json({ error: "Invalid round." }, { status: 400 });
+  if (round !== 1 && round !== 2 && round !== 3) return NextResponse.json({ error: "Invalid round." }, { status: 400 });
 
   const session = await getActiveSessionForTeamRound(team.id, round);
   if (!session) return NextResponse.json({ error: "Quiz session not found." }, { status: 404 });

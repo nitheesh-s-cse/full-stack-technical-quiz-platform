@@ -30,12 +30,15 @@ export async function POST(req: NextRequest) {
       round2CompletedAt: null,
       scoreRound1: 0,
       scoreRound2: 0,
+      scoreTieBreaker: 0,
       totalScore: 0,
       malpracticeCount: 0,
       activeLoginTokenHash: null,
       deviceInfo: null,
       lastSeenAt: null,
       terminationReason: null,
+      tieBreakerStartedAt: null,
+      tieBreakerCompletedAt: null,
       updatedAt: new Date(),
     });
 
