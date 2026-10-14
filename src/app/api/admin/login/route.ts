@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
   const ip = req.headers.get("x-forwarded-for") ?? "local";
-  if (!rateLimit(`admin-login:${ip}`, 10, 60_000)) {
+  if (!rateLimit(`admin-login:${ip}`, 60, 60_000)) {
     return NextResponse.json({ error: "Too many attempts. Please wait a moment." }, { status: 429 });
   }
 

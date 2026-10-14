@@ -47,7 +47,7 @@ export default function RulesGate({ round, teamName, durationMinutes, questionCo
           {round === 3 ? "Java Tie-Breaker Round" : `Round ${round}`} — Ready to begin, {teamName}?
         </h1>
         <p className="mt-1 text-sm text-slate-500">
-          {questionCount} questions · {durationMinutes} minutes · server-timed &amp; server-scored
+          {questionCount} questions · {durationMinutes} minutes · server-timed &amp; evaluated
         </p>
 
         <div className="mt-6 space-y-3 rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 text-sm text-amber-200">

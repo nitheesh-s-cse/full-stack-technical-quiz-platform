@@ -42,7 +42,6 @@ export async function GET(req: NextRequest) {
     durationMinutes: session.durationMinutes,
     questions: clientQuestions,
     answers: answersMap,
-    score: session.status !== "ACTIVE" ? session.score : undefined,
     malpracticeCount: team.malpracticeCount,
     teamStatus: team.teamStatus,
   });

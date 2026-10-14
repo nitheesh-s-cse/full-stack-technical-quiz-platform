@@ -23,7 +23,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
   }
 
-  const round = Number(body.round) === 2 ? 2 : 1;
+  const rawRound = Number(body.round);
+  const round = rawRound === 2 ? 2 : rawRound === 3 ? 3 : 1;
   const eventType = MALPRACTICE_EVENT_TYPES.includes(body.eventType as never)
     ? (body.eventType as (typeof MALPRACTICE_EVENT_TYPES)[number])
     : "OTHER";

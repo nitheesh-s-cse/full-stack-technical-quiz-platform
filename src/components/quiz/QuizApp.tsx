@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Loader2, ShieldX, Trophy, Clock3, LogOut } from "lucide-react";
+import { Loader2, ShieldX, Clock3, LogOut, CheckCircle2 } from "lucide-react";
 import TeamLogin from "@/components/quiz/TeamLogin";
 import RulesGate from "@/components/quiz/RulesGate";
 import QuizRunner from "@/components/quiz/QuizRunner";
@@ -15,10 +15,6 @@ type PublicTeam = {
   teamStatus: string;
   qualifiedForRound2: boolean;
   currentRound: number;
-  scoreRound1: number;
-  scoreRound2: number;
-  scoreTieBreaker?: number;
-  totalScore: number;
   malpracticeCount: number;
 };
 
@@ -56,7 +52,7 @@ export default function QuizApp() {
   const [startData, setStartData] = useState<StartResponse | null>(null);
   const [initialAnswers, setInitialAnswers] = useState<Record<number, string>>({});
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<{ score: number; correctCount: number; totalQuestions: number } | null>(null);
+  const [submitted, setSubmitted] = useState(false);
 
   const loadMe = useCallback(async () => {
     const res = await fetch("/api/team/me", { cache: "no-store" });
@@ -108,14 +104,17 @@ export default function QuizApp() {
           setPhase("lobby");
           return;
         }
+        setTargetRound(3);
         setPhase("result");
         return;
       }
 
+      setTargetRound(2);
       setPhase("result");
       return;
     }
 
+    setTargetRound(1);
     setPhase("result");
   }, []);
 
@@ -158,8 +157,8 @@ export default function QuizApp() {
     setPhase("quiz");
   }
 
-  function handleSubmitted(res: { score: number; correctCount: number; totalQuestions: number }) {
-    setResult(res);
+  function handleSubmitted() {
+    setSubmitted(true);
     setPhase("result");
     refresh();
   }
@@ -284,31 +283,49 @@ export default function QuizApp() {
 
   if (phase === "result") {
     return (
-      <div className="flex min-h-screen items-center justify-center px-4">
-        <div className="max-w-lg rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-8 text-center fade-in">
-          <Trophy className="mx-auto mb-4 h-12 w-12 text-emerald-400" />
-          <h1 className="text-2xl font-bold text-white">Submission Received</h1>
-          <p className="mt-2 text-sm text-slate-400">Your answers have been recorded and scored by the server.</p>
+      <div className="flex min-h-screen items-center justify-center px-4 py-8">
+        <div className="max-w-lg w-full rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-8 text-center fade-in shadow-2xl shadow-emerald-950/20">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400 ring-8 ring-emerald-500/10">
+            <CheckCircle2 className="h-9 w-9 text-emerald-400" />
+          </div>
+          <h1 className="text-2xl font-bold text-white">Answer Submitted Successfully</h1>
+          <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-emerald-500/15 border border-emerald-500/30 px-4 py-1.5 text-sm font-semibold text-emerald-300">
+            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+            Kindly wait for the instructions
+          </div>
+          <p className="mt-3 text-sm text-slate-300">
+            Your responses for {targetRound === 3 ? "Java Tie-Breaker (Round 3)" : `Round ${targetRound}`} have been recorded by the server.
+          </p>
 
-          {result && (
-            <p className="mt-4 font-mono-code text-lg text-emerald-300">
-              Score: {result.score} / {result.totalQuestions}
+          <div className="mt-6 rounded-xl border border-slate-800 bg-slate-900/70 p-5 text-left text-sm space-y-3">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+              <span className="text-slate-400">Team Name</span>
+              <span className="font-semibold text-white">{team?.teamName}</span>
+            </div>
+            <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+              <span className="text-slate-400">Team Code</span>
+              <span className="font-mono-code font-semibold text-emerald-400">{team?.teamCode}</span>
+            </div>
+            <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+              <span className="text-slate-400">Round</span>
+              <span className="font-semibold text-slate-200">
+                {targetRound === 3 ? "Java Tie-Breaker (Round 3)" : `Round ${targetRound}`}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-slate-400">Submission Status</span>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-400 border border-emerald-500/20">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                Submitted &amp; Recorded
+              </span>
+            </div>
+          </div>
+
+          <div className="mt-6 rounded-lg border border-slate-800 bg-slate-900/60 p-4 text-xs text-slate-400 text-left flex gap-3 items-start">
+            <span className="text-base select-none">ℹ️</span>
+            <p>
+              Participant scores are not displayed here. Evaluation and results are managed by the event organizers. Please stay seated and kindly wait for further instructions and stage announcements.
             </p>
-          )}
-
-          <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-4 text-left text-sm">
-            <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4">
-              <p className="text-slate-500">Round 1 Score</p>
-              <p className="text-xl font-bold text-white">{meInfo?.team?.scoreRound1 ?? team?.scoreRound1 ?? 0}</p>
-            </div>
-            <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4">
-              <p className="text-slate-500">Round 2 Score</p>
-              <p className="text-xl font-bold text-white">{meInfo?.team?.scoreRound2 ?? team?.scoreRound2 ?? 0}</p>
-            </div>
-            <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4 col-span-2 sm:col-span-1">
-              <p className="text-slate-500">Tie-Breaker Score</p>
-              <p className="text-xl font-bold text-amber-300">{meInfo?.team?.scoreTieBreaker ?? team?.scoreTieBreaker ?? 0}</p>
-            </div>
           </div>
 
           {meInfo?.settings?.tieBreakerEnabled && (!meInfo?.round3 || meInfo?.round3?.status === "ACTIVE") && (
@@ -325,13 +342,13 @@ export default function QuizApp() {
 
           <p className="mt-6 text-xs text-slate-500">
             {team?.qualifiedForRound2 && !meInfo?.round2
-              ? "If you qualify for Round 2, please wait for the organizer to announce results and enable the next round."
+              ? "If qualified for Round 2, please wait for the organizer to announce results and enable the next round."
               : meInfo?.settings?.tieBreakerEnabled && !meInfo?.round3
-              ? "Tie-Breaker mode is currently active! Click above to resolve tie scores."
-              : "Thank you for participating in OUTPUT HUNT! Please wait for the organizer's announcement."}
+              ? "Tie-Breaker mode is currently active! Click above to proceed if instructed."
+              : "Thank you for participating! Kindly wait for the instructions."}
           </p>
 
-          <button onClick={refresh} className="mt-6 text-xs text-emerald-400 underline underline-offset-2">
+          <button onClick={refresh} className="mt-6 text-xs text-emerald-400 hover:text-emerald-300 underline underline-offset-2">
             Refresh status
           </button>
         </div>

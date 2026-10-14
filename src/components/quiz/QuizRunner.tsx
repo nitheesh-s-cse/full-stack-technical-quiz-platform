@@ -19,7 +19,7 @@ type Props = {
   endsAt: string;
   serverNow: string;
   initialMalpracticeCount: number;
-  onSubmitted: (result: { score: number; correctCount: number; totalQuestions: number }) => void;
+  onSubmitted: () => void;
   onTerminated: () => void;
 };
 
@@ -103,12 +103,7 @@ export default function QuizRunner({
           body: JSON.stringify({ round }),
         });
         const data = await res.json();
-        if (res.ok) {
-          onSubmitted(data);
-        } else {
-          // Session likely already finalized server-side (e.g. time expired) — fetch state to reconcile.
-          onSubmitted({ score: 0, correctCount: 0, totalQuestions: questions.length });
-        }
+        onSubmitted();
       } catch {
         if (auto) {
           // Best effort — server will finalize automatically once it notices ends_at has passed.
@@ -117,7 +112,7 @@ export default function QuizRunner({
         setSubmitting(false);
       }
     },
-    [round, onSubmitted, questions.length],
+    [round, onSubmitted],
   );
 
   // Countdown tick
@@ -171,7 +166,7 @@ export default function QuizRunner({
         }
         if (data.status !== "ACTIVE" && !submittedRef.current) {
           submittedRef.current = true;
-          onSubmitted({ score: data.score ?? 0, correctCount: 0, totalQuestions: questions.length });
+          onSubmitted();
         }
       } catch {
         if (!cancelled) setOnline(false);
@@ -446,8 +441,7 @@ export default function QuizRunner({
           <div className="w-full max-w-md rounded-2xl border border-slate-700 bg-slate-900 p-6">
             <h3 className="text-lg font-bold text-white">Are you sure you want to submit?</h3>
             <p className="mt-2 text-sm text-slate-400">
-              You have answered {answeredCount} of {questions.length} questions. Once submitted, you cannot change any
-              answers.
+              You have answered {answeredCount} of {questions.length} questions. Once submitted, your answers will be recorded and you will be directed to wait for further instructions.
             </p>
             <div className="mt-6 flex justify-end gap-3">
               <button

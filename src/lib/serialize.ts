@@ -1,6 +1,6 @@
 import type { Team } from "@/lib/team-auth";
 
-/** Safe, participant-facing view of a team — never leak session tokens etc. */
+/** Safe, participant-facing view of a team — never leak scores, session tokens etc. */
 export function publicTeam(team: Team) {
   return {
     id: team.id,
@@ -11,10 +11,6 @@ export function publicTeam(team: Team) {
     teamStatus: team.teamStatus,
     qualifiedForRound2: team.qualifiedForRound2,
     currentRound: team.currentRound,
-    scoreRound1: team.scoreRound1,
-    scoreRound2: team.scoreRound2,
-    scoreTieBreaker: team.scoreTieBreaker,
-    totalScore: team.totalScore,
     malpracticeCount: team.malpracticeCount,
     quizStartedAt: team.quizStartedAt,
     quizCompletedAt: team.quizCompletedAt,

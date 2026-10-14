@@ -21,5 +21,12 @@ export async function POST(req: NextRequest) {
   if (!session) return NextResponse.json({ error: "Quiz session not found." }, { status: 404 });
 
   const result = await finalizeSession(session.id, "COMPLETED");
-  return NextResponse.json(result);
+  return NextResponse.json({
+    ok: true,
+    submitted: true,
+    round,
+    totalQuestions: result.totalQuestions,
+    alreadyFinalized: result.alreadyFinalized,
+    message: "Answers submitted successfully. Kindly wait for instructions.",
+  });
 }
