@@ -321,10 +321,10 @@ export default function QuizApp() {
             </div>
           </div>
 
-          <div className="mt-6 rounded-lg border border-slate-800 bg-slate-900/60 p-4 text-xs text-slate-400 text-left flex gap-3 items-start">
+          <div className="mt-6 rounded-lg border border-slate-800 bg-slate-900/60 p-4 text-xs text-slate-400 text-left flex gap-3 items-center">
             <span className="text-base select-none">ℹ️</span>
             <p>
-              Participant scores are not displayed here. Evaluation and results are managed by the event organizers. Please stay seated and kindly wait for further instructions and stage announcements.
+              Kindly wait for the instructions.
             </p>
           </div>
 
