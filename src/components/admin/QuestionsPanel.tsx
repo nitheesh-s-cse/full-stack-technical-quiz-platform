@@ -82,7 +82,7 @@ export default function QuestionsPanel() {
 
   const filteredQuestions = questions.filter((q) => {
     if (selectedLanguage === "ALL") return true;
-    if (selectedLanguage === "CPP") return q.language === "CPP" || q.language === "C++";
+    if (selectedLanguage === "C++" || selectedLanguage === "CPP") return q.language === "C++" || q.language === "CPP";
     return q.language === selectedLanguage;
   });
 
@@ -113,11 +113,11 @@ export default function QuestionsPanel() {
 
       {/* Language Category Filter Tabs & Statistics */}
       <div className="mb-4 flex flex-wrap items-center gap-1.5">
-        {["ALL", "C", "CPP", "PYTHON", "HTML", "JAVA"].map((l) => {
+        {["ALL", "C", "C++", "PYTHON", "HTML", "JAVA"].map((l) => {
           const count =
             l === "ALL"
               ? questions.length
-              : questions.filter((q) => q.language === l || (l === "CPP" && q.language === "C++")).length;
+              : questions.filter((q) => q.language === l || (l === "C++" && q.language === "CPP")).length;
           const active = selectedLanguage === l;
           return (
             <button
@@ -143,11 +143,11 @@ export default function QuestionsPanel() {
         <form onSubmit={createQuestion} className="mb-6 space-y-3 rounded-xl border border-slate-800 bg-slate-950/60 p-4">
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <select
-              value={form.language}
+              value={form.language === "CPP" ? "C++" : form.language}
               onChange={(e) => setForm((p) => ({ ...p, language: e.target.value }))}
               className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
             >
-              {["C", "CPP", "PYTHON", "HTML", "JAVA"].map((l) => (
+              {["C", "C++", "PYTHON", "HTML", "JAVA"].map((l) => (
                 <option key={l} value={l}>
                   {LANGUAGE_DISPLAY[l] ?? l}
                 </option>

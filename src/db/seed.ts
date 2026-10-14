@@ -134,7 +134,7 @@ async function main() {
     },
     // ---------------- C++ ----------------
     {
-      round: 1, language: "CPP", difficulty: "BASIC", orderIndex: 6,
+      round: 1, language: "C++", difficulty: "BASIC", orderIndex: 6,
       code: `#include <iostream>\nusing namespace std;\nvoid update(int &x) {\n    x = x * 2;\n}\nint main() {\n    int a = 4;\n    update(a);\n    cout << a << endl;\n    return 0;\n}`,
       questionText: "What will be the output of this program?",
       optionA: "8", optionB: "4", optionC: "16", optionD: "0",
@@ -143,7 +143,7 @@ async function main() {
       marks: 1, negativeMarks: 0,
     },
     {
-      round: 1, language: "CPP", difficulty: "BASIC", orderIndex: 7,
+      round: 1, language: "C++", difficulty: "BASIC", orderIndex: 7,
       code: `#include <iostream>\nusing namespace std;\nint main() {\n    int i = 0;\n    while (i < 5) {\n        cout << i++ << " ";\n    }\n    return 0;\n}`,
       questionText: "What will be the output of this program?",
       optionA: "0 1 2 3 4", optionB: "1 2 3 4 5", optionC: "0 1 2 3 4 5", optionD: "1 2 3 4",
@@ -152,7 +152,7 @@ async function main() {
       marks: 1, negativeMarks: 0,
     },
     {
-      round: 1, language: "CPP", difficulty: "BASIC", orderIndex: 8,
+      round: 1, language: "C++", difficulty: "BASIC", orderIndex: 8,
       code: `#include <iostream>\nusing namespace std;\nint add(int a, int b = 10) {\n    return a + b;\n}\nint main() {\n    cout << add(5) << " " << add(5, 20);\n    return 0;\n}`,
       questionText: "What will be the output of this program?",
       optionA: "15 25", optionB: "5 10", optionC: "15 20", optionD: "25 15",
@@ -161,7 +161,7 @@ async function main() {
       marks: 1, negativeMarks: 0,
     },
     {
-      round: 1, language: "CPP", difficulty: "BASIC", orderIndex: 9,
+      round: 1, language: "C++", difficulty: "BASIC", orderIndex: 9,
       code: `#include <iostream>\nusing namespace std;\nint main() {\n    int a = 7, b = 2;\n    double result = (double)a / b;\n    cout << result;\n    return 0;\n}`,
       questionText: "What will be the output of this program?",
       optionA: "3.5", optionB: "3", optionC: "3.0", optionD: "4",
@@ -170,7 +170,7 @@ async function main() {
       marks: 1, negativeMarks: 0,
     },
     {
-      round: 1, language: "CPP", difficulty: "BASIC", orderIndex: 10,
+      round: 1, language: "C++", difficulty: "BASIC", orderIndex: 10,
       code: `#include <iostream>\nusing namespace std;\nclass Counter {\npublic:\n    int count;\n    Counter() { count = 0; }\n    void increment() { count++; }\n};\nint main() {\n    Counter c1, c2;\n    c1.increment();\n    c1.increment();\n    c2.increment();\n    cout << c1.count << " " << c2.count;\n    return 0;\n}`,
       questionText: "What will be the output of this program?",
       optionA: "2 1", optionB: "1 2", optionC: "3 0", optionD: "2 2",
@@ -301,7 +301,7 @@ async function main() {
       marks: 2, negativeMarks: 1,
     },
     {
-      round: 2, language: "CPP", difficulty: "ADVANCED", orderIndex: 4,
+      round: 2, language: "C++", difficulty: "ADVANCED", orderIndex: 4,
       code: `#include <iostream>\nusing namespace std;\n\nclass Shape {\npublic:\n    virtual int area() {\n        return 0;\n    }\n    virtual void describe() {\n        cout << "Shape with area " << area() << endl;\n    }\n};\n\nclass Square : public Shape {\nprivate:\n    int side;\npublic:\n    Square(int s) : side(s) {}\n    int area() override {\n        return side * side;\n    }\n};\n\nclass Rectangle : public Shape {\nprivate:\n    int width, height;\npublic:\n    Rectangle(int w, int h) : width(w), height(h) {}\n    int area() override {\n        return width * height;\n    }\n};\n\nint main() {\n    Shape* shapes[2];\n    shapes[0] = new Square(4);\n    shapes[1] = new Rectangle(3, 5);\n\n    for (int i = 0; i < 2; i++) {\n        shapes[i]->describe();\n    }\n\n    return 0;\n}`,
       questionText: "What is printed? (lines joined here with ' | ')",
       optionA: "Shape with area 16 | Shape with area 15", optionB: "Shape with area 0 | Shape with area 0", optionC: "Shape with area 15 | Shape with area 16", optionD: "Shape with area 16 | Shape with area 8",
@@ -310,7 +310,7 @@ async function main() {
       marks: 2, negativeMarks: 1,
     },
     {
-      round: 2, language: "CPP", difficulty: "ADVANCED", orderIndex: 5,
+      round: 2, language: "C++", difficulty: "ADVANCED", orderIndex: 5,
       code: `#include <iostream>\nusing namespace std;\n\nint divide(int a, int b) {\n    if (b == 0) {\n        throw runtime_error("Division by zero");\n    }\n    return a / b;\n}\n\nint main() {\n    int values[] = {10, 20, 0, 5};\n    int total = 0;\n\n    for (int i = 0; i < 4; i++) {\n        try {\n            int result = divide(100, values[i]);\n            total += result;\n            cout << "Result: " << result << endl;\n        } catch (const exception& e) {\n            cout << "Caught: " << e.what() << endl;\n            total += 1;\n        }\n    }\n\n    cout << "Total: " << total << endl;\n    return 0;\n}`,
       questionText: "What is the final value printed for Total?",
       optionA: "36", optionB: "35", optionC: "16", optionD: "Program crashes (unhandled exception)",

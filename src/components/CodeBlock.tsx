@@ -1,11 +1,13 @@
 "use client";
 
+import { LANGUAGE_DISPLAY } from "@/lib/language-map";
+
 type Props = {
   code: string;
   language: string;
 };
 
-type Token = { text: string; color: string; italic?: boolean };
+type Token = { text: string; color: string; italic?: boolean; bold?: boolean };
 
 const KEYWORDS = new Set([
   // C / C++
@@ -26,18 +28,51 @@ const KEYWORDS = new Set([
   "doctype", "html", "head", "body", "div", "span", "script", "style", "function", "var", "let", "const"
 ]);
 
-function tokenizeLine(line: string): Token[] {
+function tokenizeLine(line: string, language: string): Token[] {
+  const normLang = (language || "").trim().toUpperCase();
+  const isPython = normLang === "PYTHON" || normLang === "PY";
+  const isHtml = normLang === "HTML" || normLang === "HTM";
+  const isCStyle = normLang === "C" || normLang === "CPP" || normLang === "C++" || normLang === "JAVA";
+
   const tokens: Token[] = [];
   let i = 0;
 
   while (i < line.length) {
-    // Single line comments
-    if (line.slice(i, i + 2) === "//" || line[i] === "#") {
-      tokens.push({ text: line.slice(i), color: "#64748b", italic: true });
+    // 1. C/C++ Preprocessor Directives (#include, #define, #ifdef, etc.)
+    if (isCStyle && line[i] === "#") {
+      let j = i + 1;
+      while (j < line.length && /[a-zA-Z0-9_]/.test(line[j])) j++;
+      tokens.push({ text: line.slice(i, j), color: "#c084fc", bold: true });
+      i = j;
+      continue;
+    }
+
+    // 2. Python Comment (# ...)
+    if (isPython && line[i] === "#") {
+      tokens.push({ text: line.slice(i), color: "#94a3b8", italic: true });
       break;
     }
 
-    // Double quoted string
+    // 3. C/C++/Java Single-line Comment (// ...)
+    if (isCStyle && line.slice(i, i + 2) === "//") {
+      tokens.push({ text: line.slice(i), color: "#94a3b8", italic: true });
+      break;
+    }
+
+    // 4. HTML Comment (<!-- ... -->)
+    if (isHtml && line.slice(i, i + 4) === "<!--") {
+      const endIdx = line.indexOf("-->", i + 4);
+      if (endIdx !== -1) {
+        tokens.push({ text: line.slice(i, endIdx + 3), color: "#94a3b8", italic: true });
+        i = endIdx + 3;
+        continue;
+      } else {
+        tokens.push({ text: line.slice(i), color: "#94a3b8", italic: true });
+        break;
+      }
+    }
+
+    // 5. Double Quoted Strings
     if (line[i] === '"') {
       let j = i + 1;
       while (j < line.length && line[j] !== '"') {
@@ -49,7 +84,7 @@ function tokenizeLine(line: string): Token[] {
       continue;
     }
 
-    // Single quoted string
+    // 6. Single Quoted Strings
     if (line[i] === "'") {
       let j = i + 1;
       while (j < line.length && line[j] !== "'") {
@@ -61,7 +96,15 @@ function tokenizeLine(line: string): Token[] {
       continue;
     }
 
-    // Numbers
+    // 7. Multi-character Operators (// in Python, ==, !=, <=, >=, ++, --, &&, ||, <<, >>, ->, +=, -=, *=, /=, **)
+    const twoChars = line.slice(i, i + 2);
+    if (["//", "**", "==", "!=", "<=", ">=", "++", "--", "&&", "||", "<<", ">>", "->", "+=", "-=", "*=", "/="].includes(twoChars)) {
+      tokens.push({ text: twoChars, color: "#38bdf8", bold: true });
+      i += 2;
+      continue;
+    }
+
+    // 8. Numbers (integers, floats, hex)
     if (/\d/.test(line[i])) {
       let j = i;
       while (j < line.length && /[\d.xXa-fA-F]/.test(line[j])) {
@@ -72,7 +115,7 @@ function tokenizeLine(line: string): Token[] {
       continue;
     }
 
-    // Words / Identifiers
+    // 9. Words / Identifiers / Keywords
     if (/[a-zA-Z_]/.test(line[i])) {
       let j = i;
       while (j < line.length && /[a-zA-Z0-9_]/.test(line[j])) {
@@ -80,22 +123,22 @@ function tokenizeLine(line: string): Token[] {
       }
       const word = line.slice(i, j);
       if (KEYWORDS.has(word)) {
-        tokens.push({ text: word, color: "#38bdf8" });
+        tokens.push({ text: word, color: "#c084fc", bold: true });
       } else {
-        tokens.push({ text: word, color: "#e2e8f0" });
+        tokens.push({ text: word, color: "#f8fafc" });
       }
       i = j;
       continue;
     }
 
-    // Operators and punctuation
+    // 10. Operators and punctuation
     const char = line[i];
     if (/[+\-*/%=<>!&|^~?:;,.]/.test(char)) {
-      tokens.push({ text: char, color: "#f43f5e" });
+      tokens.push({ text: char, color: "#38bdf8" });
     } else if (/[(){}[\]]/.test(char)) {
       tokens.push({ text: char, color: "#facc15" });
     } else {
-      tokens.push({ text: char, color: "#94a3b8" });
+      tokens.push({ text: char, color: "#f8fafc" });
     }
     i++;
   }
@@ -105,6 +148,8 @@ function tokenizeLine(line: string): Token[] {
 
 export default function CodeBlock({ code, language }: Props) {
   const lines = (code || "").split(/\r?\n/);
+  const displayLang = LANGUAGE_DISPLAY[language] ?? (language === "CPP" ? "C++" : language);
+  const fileExt = language === "CPP" || language === "C++" ? "cpp" : language.toLowerCase();
 
   return (
     <div
@@ -120,23 +165,23 @@ export default function CodeBlock({ code, language }: Props) {
           <span className="h-2.5 w-2.5 rounded-full bg-red-500/70" />
           <span className="h-2.5 w-2.5 rounded-full bg-yellow-500/70" />
           <span className="h-2.5 w-2.5 rounded-full bg-green-500/70" />
-          <span className="ml-3 text-xs text-slate-500 font-mono-code">snippet.{language.toLowerCase()}</span>
+          <span className="ml-3 text-xs text-slate-400 font-mono-code">snippet.{fileExt}</span>
         </div>
-        <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wider font-mono-code">
-          {language}
+        <span className="text-[11px] font-bold text-indigo-400 uppercase tracking-wider font-mono-code">
+          {displayLang}
         </span>
       </div>
-      <div className="overflow-x-auto p-4 font-mono-code text-[13.5px] leading-6">
+      <div className="overflow-x-auto p-4 font-mono-code text-[14px] leading-6">
         <table className="w-full border-collapse">
           <tbody>
             {lines.map((line, idx) => {
-              const tokens = tokenizeLine(line);
+              const tokens = tokenizeLine(line, language);
               return (
                 <tr key={idx} className="hover:bg-slate-800/20">
-                  <td className="w-10 select-none pr-4 text-right text-xs text-slate-600 align-top">
+                  <td className="w-10 select-none pr-4 text-right text-xs font-semibold text-slate-500 align-top">
                     {idx + 1}
                   </td>
-                  <td className="whitespace-pre align-top font-mono-code text-slate-200">
+                  <td className="whitespace-pre align-top font-mono-code text-slate-100">
                     {tokens.length === 0 ? (
                       <span>&nbsp;</span>
                     ) : (
@@ -146,6 +191,7 @@ export default function CodeBlock({ code, language }: Props) {
                           style={{
                             color: token.color,
                             fontStyle: token.italic ? "italic" : "normal",
+                            fontWeight: token.bold ? 600 : 400,
                           }}
                         >
                           {token.text}

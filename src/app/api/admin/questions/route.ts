@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
     .insert(questions)
     .values({
       round: Number(body.round),
-      language: String(body.language),
+      language: String(body.language).toUpperCase() === "CPP" ? "C++" : String(body.language),
       difficulty: String(body.difficulty),
       code: String(body.code),
       questionText: body.questionText || "What will be the output of this program?",
