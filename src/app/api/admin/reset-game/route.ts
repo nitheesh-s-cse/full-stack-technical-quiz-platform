@@ -19,28 +19,8 @@ export async function POST(req: NextRequest) {
     // 2. Delete all recorded malpractice events
     await db.delete(malpracticeEvents);
 
-    // 3. Reset all teams back to fresh REGISTERED state
-    await db.update(teams).set({
-      teamStatus: "REGISTERED",
-      qualifiedForRound2: false,
-      currentRound: 1,
-      quizStartedAt: null,
-      quizCompletedAt: null,
-      round2StartedAt: null,
-      round2CompletedAt: null,
-      scoreRound1: 0,
-      scoreRound2: 0,
-      scoreTieBreaker: 0,
-      totalScore: 0,
-      malpracticeCount: 0,
-      activeLoginTokenHash: null,
-      deviceInfo: null,
-      lastSeenAt: null,
-      terminationReason: null,
-      tieBreakerStartedAt: null,
-      tieBreakerCompletedAt: null,
-      updatedAt: new Date(),
-    });
+    // 3. Delete all teams completely
+    await db.delete(teams);
 
     // 4. Disable all rounds and tie-breaker in event settings
     await db.update(eventSettings).set({
@@ -54,6 +34,7 @@ export async function POST(req: NextRequest) {
     await logAdminAction(admin.id, "RESET_FULL_GAME", null, {
       adminUsername: admin.username,
       at: new Date().toISOString(),
+      teamsDeleted: true,
     });
 
     // 6. Broadcast live events
@@ -63,12 +44,12 @@ export async function POST(req: NextRequest) {
     });
     broadcast({
       type: "TEAM_UPDATED",
-      message: "All teams have been reset to Round 1",
+      message: "All teams have been deleted and competition reset",
     });
 
     return NextResponse.json({
       ok: true,
-      message: "Competition reset successfully. All scores and sessions have been cleared.",
+      message: "Competition reset successfully. All teams, scores, and sessions have been cleared.",
     });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Failed to reset competition.";

@@ -149,7 +149,7 @@ export default function SettingsPanel({
               <RotateCcw className="h-4 w-4 text-red-400" /> Fully Restart Competition / Reset Game
             </h3>
             <p className="mt-1 text-xs text-red-400/80">
-              Permanently clears all student answers, active sessions, scores, and malpractice strikes. All teams return to Round 1 start with 0 points.
+              Permanently deletes all registered teams, student answers, active sessions, scores, and malpractice strikes. Everything returns to a clean slate.
             </p>
           </div>
           <button
@@ -167,7 +167,7 @@ export default function SettingsPanel({
 
       {resetSuccess && (
         <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-xs font-semibold text-emerald-300 lg:col-span-2">
-          ✓ Entire competition has been reset successfully. All sessions, answers, and scores cleared.
+          ✓ Entire competition has been reset successfully. All registered teams, sessions, answers, and scores have been deleted.
         </p>
       )}
 
@@ -190,11 +190,11 @@ export default function SettingsPanel({
 
             <div className="space-y-3 text-xs text-slate-300">
               <p className="rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-red-200">
-                <strong>WARNING:</strong> This action cannot be undone. All submitted answers, active quiz sessions, scores, and malpractice events will be permanently deleted.
+                <strong>WARNING:</strong> This action cannot be undone. All registered teams, submitted answers, active quiz sessions, scores, and malpractice events will be permanently deleted.
               </p>
               <ul className="list-disc pl-4 space-y-1 text-slate-400">
-                <li>All registered teams will be preserved.</li>
-                <li>All teams will be reset to Round 1 start with 0 points and 0 strikes.</li>
+                <li className="text-red-300 font-semibold">All registered teams will be permanently deleted.</li>
+                <li>All submitted answers, quiz sessions, and leaderboard scores will be deleted.</li>
                 <li>Round 1 and Round 2 will be disabled until you re-enable them.</li>
               </ul>
               <div>
