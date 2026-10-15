@@ -32,7 +32,8 @@
     "react-syntax-highlighter": "^16.1.1",
     "tailwindcss": "4.1.17",
     "tsx": "^4.23.13",
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "eslint": "9.39.4",

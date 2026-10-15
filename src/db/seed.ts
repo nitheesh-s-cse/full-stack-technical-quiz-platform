@@ -280,7 +280,7 @@ async function main() {
       optionA: "Total=20 Last=10 | Extra=6", optionB: "Total=20 Last=8 | Extra=6", optionC: "Total=8 Last=10 | Extra=6", optionD: "Total=20 Last=10 | Extra=3",
       correctOption: "A",
       explanation: "counter() is called 5 times total, each adding 2 to a static variable: 2,4,6,8 (sum=20 in the loop), then the 5th call returns 10. sumFirstN(3)=1+2+3=6.",
-      marks: 2, negativeMarks: 1,
+      marks: 2, negativeMarks: 0,
     },
     {
       round: 2, language: "C", difficulty: "ADVANCED", orderIndex: 2,
@@ -289,7 +289,7 @@ async function main() {
       optionA: "Array: 2 4 6 8 10 | Sum: 30", optionB: "Array: 1 2 3 4 5 | Sum: 30", optionC: "Array: 2 4 6 8 10 | Sum: 15", optionD: "Array: 1 2 3 4 5 | Sum: 15",
       correctOption: "A",
       explanation: "Arrays decay to pointers, so modifyArray changes the original array in place (doubles each value), and sumArray sums the already-modified values.",
-      marks: 2, negativeMarks: 1,
+      marks: 2, negativeMarks: 0,
     },
     {
       round: 2, language: "C", difficulty: "ADVANCED", orderIndex: 3,
@@ -298,7 +298,7 @@ async function main() {
       optionA: "Topper: Ravi | Average: 85", optionB: "Topper: Kiran | Average: 85", optionC: "Topper: Ravi | Average: 85.0", optionD: "Topper: Ravi | Average: 84",
       correctOption: "A",
       explanation: "Ravi has the highest marks (92). Total = 78+92+85 = 255, and 255/3 with integer division is exactly 85.",
-      marks: 2, negativeMarks: 1,
+      marks: 2, negativeMarks: 0,
     },
     {
       round: 2, language: "C++", difficulty: "ADVANCED", orderIndex: 4,
@@ -307,7 +307,7 @@ async function main() {
       optionA: "Shape with area 16 | Shape with area 15", optionB: "Shape with area 0 | Shape with area 0", optionC: "Shape with area 15 | Shape with area 16", optionD: "Shape with area 16 | Shape with area 8",
       correctOption: "A",
       explanation: "Virtual functions enable dynamic dispatch: describe() calls the overridden area() for each derived class. Square: 4*4=16, Rectangle: 3*5=15.",
-      marks: 2, negativeMarks: 1,
+      marks: 2, negativeMarks: 0,
     },
     {
       round: 2, language: "C++", difficulty: "ADVANCED", orderIndex: 5,
@@ -316,7 +316,7 @@ async function main() {
       optionA: "36", optionB: "35", optionC: "16", optionD: "Program crashes (unhandled exception)",
       correctOption: "A",
       explanation: "100/10=10, 100/20=5, 100/0 throws (caught, adds 1), 100/5=20. Total = 10+5+1+20 = 36.",
-      marks: 2, negativeMarks: 1,
+      marks: 2, negativeMarks: 0,
     },
     {
       round: 2, language: "PYTHON", difficulty: "ADVANCED", orderIndex: 6,
@@ -325,7 +325,7 @@ async function main() {
       optionA: "[20, 20, 20]", optionB: "[0, 10, 20]", optionC: "[0, 0, 0]", optionD: "[30, 30, 30]",
       correctOption: "A",
       explanation: "All lambdas capture the same variable i by reference (late binding), not its value at creation. After the loop, i=2, so every call returns x*2.",
-      marks: 2, negativeMarks: 1,
+      marks: 2, negativeMarks: 0,
     },
     {
       round: 2, language: "PYTHON", difficulty: "ADVANCED", orderIndex: 7,
@@ -334,7 +334,7 @@ async function main() {
       optionA: "['apple', 'banana'] | ['apple', 'banana'] | ['cherry']", optionB: "['apple'] | ['banana'] | ['cherry']", optionC: "['apple', 'banana', 'cherry'] | ['apple', 'banana', 'cherry'] | ['apple', 'banana', 'cherry']", optionD: "['apple'] | ['apple', 'banana'] | ['cherry']",
       correctOption: "A",
       explanation: "Mutable default arguments are created once, at function definition time, and shared across calls that don't override it. order1 and order2 reference the same shared list.",
-      marks: 2, negativeMarks: 1,
+      marks: 2, negativeMarks: 0,
     },
     {
       round: 2, language: "PYTHON", difficulty: "ADVANCED", orderIndex: 8,
@@ -343,7 +343,7 @@ async function main() {
       optionA: "[6, 10]", optionB: "[1, 3, 6, 10, 15, 21]", optionC: "[2, 4, 6]", optionD: "[6, 10, 15]",
       correctOption: "A",
       explanation: "The generator yields cumulative sums 1,3,6,10,15,21. Only the even values (6 and 10) are kept.",
-      marks: 2, negativeMarks: 1,
+      marks: 2, negativeMarks: 0,
     },
     {
       round: 2, language: "HTML", difficulty: "ADVANCED", orderIndex: 9,
@@ -352,7 +352,7 @@ async function main() {
       optionA: "Header spans 3 columns; Pen row has 3 cells", optionB: "Header spans 2 columns; Pen row has 3 cells", optionC: "Header spans 3 columns; Pen row has 2 cells", optionD: "Header spans 3 columns; Pen row has 4 cells",
       correctOption: "A",
       explanation: "\"Item\" (1 column) + \"Details\" colspan=2 (2 columns) = 3 columns total. The Pen row explicitly declares three <td> cells.",
-      marks: 2, negativeMarks: 1,
+      marks: 2, negativeMarks: 0,
     },
     {
       round: 2, language: "HTML", difficulty: "ADVANCED", orderIndex: 10,
@@ -361,7 +361,7 @@ async function main() {
       optionA: "Original Content", optionB: "<i>Original Content</i>", optionC: "Original <b>Content</b>", optionD: "OriginalContent",
       correctOption: "A",
       explanation: "textContent returns only the text of all descendant nodes without tags. After replacing innerHTML with an <i> wrapper, textContent is still just the plain text 'Original Content'.",
-      marks: 2, negativeMarks: 1,
+      marks: 2, negativeMarks: 0,
     },
   ];
 
@@ -405,7 +405,7 @@ async function main() {
       correctOption: "B",
       explanation: "a == b is true (both point to literal 'Java' in the string pool). a == c is false (c is a distinct heap object). a == d is true (d is c.intern(), returning the pooled literal). a.equals(c) is true (same content). c == d is false (heap object vs pooled object). Count increments 4 times: for a==b, a==d, a.equals(c), and c.equals(d).",
       marks: 2,
-      negativeMarks: 1,
+      negativeMarks: 0,
     },
     {
       id: 102,
@@ -446,7 +446,7 @@ async function main() {
       correctOption: "A",
       explanation: "5 matches show(int). 5.0 matches show(double). val is of type Integer, matching show(Integer) directly. For b (byte) and c (char), Java prefers primitive widening to int over boxing or widening to double. 'A' widens to int ASCII 65.",
       marks: 2,
-      negativeMarks: 1,
+      negativeMarks: 0,
     },
     {
       id: 103,
@@ -487,7 +487,7 @@ public class Q3 {
       correctOption: "C",
       explanation: "Dynamic method dispatch executes Child's overridden display() and print() methods for p1 (Child instance assigned to Parent reference), printing 'Child' and 'C'. For p2 (Parent instance), Parent's methods are invoked, printing 'Parent' and 'P'.",
       marks: 2,
-      negativeMarks: 1,
+      negativeMarks: 0,
     },
     {
       id: 104,
@@ -528,7 +528,7 @@ public class Q3 {
       correctOption: "D",
       explanation: "Inside compute(), 'A ' prints first. 10/0 throws ArithmeticException, caught by the catch block which prints 'B ' and prepares to return 20. The finally block executes before control returns, printing 'C '. In main(), 'D 20' is printed on the same line, followed by E, F, G, H, I.",
       marks: 2,
-      negativeMarks: 1,
+      negativeMarks: 0,
     },
     {
       id: 105,
@@ -569,7 +569,7 @@ public class Q3 {
       correctOption: "A",
       explanation: "update() pre-increments count. v1=1, v2=2, count=2 -> prints '1 2'. ++count makes count=3, a=3 -> prints '3 3'. count++ makes count=4 -> prints '4'. The loop calls update() 3 times: count becomes 5, 6, 7; sum = 5+6+7 = 18. Prints Sum = 18, Count = 7, Done, End.",
       marks: 2,
-      negativeMarks: 1,
+      negativeMarks: 0,
     },
   ];
 

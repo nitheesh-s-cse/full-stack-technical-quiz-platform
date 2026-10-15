@@ -106,8 +106,8 @@ export default function TeamsTable({
                   </span>
                 </td>
                 <td className="px-4 py-3 font-mono-code text-slate-200">
-                  {t.scoreRound1}
-                  {t.round2 ? ` + ${t.scoreRound2}` : ""}{t.round3 || (t.scoreTieBreaker ?? 0) > 0 ? ` (TB: ${t.scoreTieBreaker ?? 0})` : ""} = {t.totalScore}
+                  {Math.max(0, t.scoreRound1)}
+                  {t.round2 ? ` + ${Math.max(0, t.scoreRound2)}` : ""}{t.round3 || (t.scoreTieBreaker ?? 0) > 0 ? ` (TB: ${Math.max(0, t.scoreTieBreaker ?? 0)})` : ""} = {Math.max(0, t.totalScore)}
                 </td>
                 <td className="px-4 py-3">
                   <span className={t.malpracticeCount >= 3 ? "font-bold text-red-400" : t.malpracticeCount > 0 ? "text-amber-400" : "text-slate-500"}>

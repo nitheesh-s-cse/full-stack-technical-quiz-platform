@@ -54,7 +54,8 @@ export async function finalizeSession(
 
     const actualOption = resolveActualOption(order, entry.questionId, answer.selectedLabel as OptionLabel);
     const isCorrect = actualOption === question.correctOption;
-    const marksAwarded = isCorrect ? question.marks : question.negativeMarks > 0 ? -question.negativeMarks : 0;
+    // No negative marking: correct answers get full marks, wrong/skipped answers get 0 marks
+    const marksAwarded = isCorrect ? question.marks : 0;
 
     if (isCorrect) correctCount += 1;
     score += marksAwarded;
@@ -64,6 +65,9 @@ export async function finalizeSession(
       .set({ isCorrect, marksAwarded, updatedAt: new Date() })
       .where(eq(quizAnswers.id, answer.id));
   }
+
+  // Ensure score is never negative
+  score = Math.max(0, score);
 
   const now = new Date();
   const [updatedSession] = await db
@@ -75,7 +79,7 @@ export async function finalizeSession(
   if (!updatedSession) {
     const [current] = await db.select().from(quizSessions).where(eq(quizSessions.id, sessionId)).limit(1);
     return {
-      score: current?.score ?? score,
+      score: Math.max(0, current?.score ?? score),
       correctCount,
       totalQuestions: order.length,
       alreadyFinalized: true,
@@ -86,16 +90,18 @@ export async function finalizeSession(
   if (team) {
     const patch: Partial<typeof teams.$inferInsert> = { updatedAt: now };
     if (session.round === 1) {
-      patch.scoreRound1 = score;
+      patch.scoreRound1 = Math.max(0, score);
       patch.quizCompletedAt = now;
     } else if (session.round === 2) {
-      patch.scoreRound2 = score;
+      patch.scoreRound2 = Math.max(0, score);
       patch.round2CompletedAt = now;
     } else if (session.round === 3) {
-      patch.scoreTieBreaker = score;
+      patch.scoreTieBreaker = Math.max(0, score);
       patch.tieBreakerCompletedAt = now;
     }
-    const newTotal = (session.round === 1 ? score : team.scoreRound1) + (session.round === 2 ? score : team.scoreRound2);
+    const r1 = session.round === 1 ? score : team.scoreRound1;
+    const r2 = session.round === 2 ? score : team.scoreRound2;
+    const newTotal = Math.max(0, Math.max(0, r1) + Math.max(0, r2));
     patch.totalScore = newTotal;
 
     if (finalStatus === "TERMINATED") {

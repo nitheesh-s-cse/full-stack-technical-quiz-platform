@@ -3,7 +3,7 @@
 import { useEffect, useState, use as usePromise } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ShieldAlert, CheckCircle2, XCircle, ShieldCheck, Pencil, Trash2 } from "lucide-react";
+import { ArrowLeft, ShieldAlert, CheckCircle2, XCircle, ShieldCheck, Pencil, Trash2, FileSpreadsheet, Loader2 } from "lucide-react";
 import { LANGUAGE_COLORS, LANGUAGE_DISPLAY } from "@/lib/language-map";
 import ReinstateModal from "@/components/admin/ReinstateModal";
 import EditTeamModal from "@/components/admin/EditTeamModal";
@@ -81,6 +81,7 @@ export default function TeamDetailPage({ params }: { params: Promise<{ id: strin
   const [showReinstate, setShowReinstate] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   async function load() {
     const res = await fetch(`/api/admin/teams/${id}`, { cache: "no-store" });
@@ -94,6 +95,28 @@ export default function TeamDetailPage({ params }: { params: Promise<{ id: strin
     setEvents(data.malpracticeEvents ?? []);
     setExpandedRound((prev) => prev ?? data.rounds?.[0]?.round ?? null);
     setLoading(false);
+  }
+
+  async function handleExportTeam() {
+    setIsExporting(true);
+    try {
+      const res = await fetch(`/api/admin/teams/${id}/export`);
+      if (!res.ok) throw new Error("Failed to export team report");
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Team_${team?.teamCode || id}_Report.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error(e);
+      alert("Failed to export team report Excel file.");
+    } finally {
+      setIsExporting(false);
+    }
   }
 
   useEffect(() => {
@@ -122,8 +145,17 @@ export default function TeamDetailPage({ params }: { params: Promise<{ id: strin
       <div className="mb-6 rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <h1 className="text-2xl font-bold text-white">{team.teamName}</h1>
+              <button
+                onClick={handleExportTeam}
+                disabled={isExporting}
+                className="flex items-center gap-1 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-300 hover:border-emerald-400 hover:bg-emerald-500/20 disabled:opacity-50"
+                title="Download team performance report as Excel (.xlsx)"
+              >
+                {isExporting ? <Loader2 className="h-3 w-3 animate-spin" /> : <FileSpreadsheet className="h-3 w-3 text-emerald-400" />}
+                Export Excel
+              </button>
               <button
                 onClick={() => setShowEdit(true)}
                 className="flex items-center gap-1 rounded-lg border border-slate-700 bg-slate-800/80 px-2.5 py-1 text-xs font-semibold text-slate-300 hover:border-slate-500 hover:text-white"

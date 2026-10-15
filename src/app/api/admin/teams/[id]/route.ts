@@ -77,8 +77,14 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string 
     .orderBy(desc(malpracticeEvents.occurredAt));
 
   return NextResponse.json({
-    team,
-    rounds: roundsDetail,
+    team: {
+      ...team,
+      scoreRound1: Math.max(0, team.scoreRound1),
+      scoreRound2: Math.max(0, team.scoreRound2),
+      scoreTieBreaker: Math.max(0, team.scoreTieBreaker),
+      totalScore: Math.max(0, team.totalScore),
+    },
+    rounds: roundsDetail.map((r) => ({ ...r, score: Math.max(0, r.score) })),
     malpracticeEvents: events,
   });
 }

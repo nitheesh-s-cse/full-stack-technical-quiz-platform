@@ -10,6 +10,7 @@ import LeaderboardPanel from "@/components/admin/LeaderboardPanel";
 import QuestionsPanel from "@/components/admin/QuestionsPanel";
 import CreateTeamModal from "@/components/admin/CreateTeamModal";
 import ImportTeamsModal from "@/components/admin/ImportTeamsModal";
+import ExportModal from "@/components/admin/ExportModal";
 import EditTeamModal, { type EditTeamTarget } from "@/components/admin/EditTeamModal";
 import ReinstateModal, { type ReinstateTarget } from "@/components/admin/ReinstateModal";
 import DeleteTeamModal from "@/components/admin/DeleteTeamModal";
@@ -26,6 +27,7 @@ export default function AdminDashboardPage() {
   const [tab, setTab] = useState<Tab>("teams");
   const [showCreate, setShowCreate] = useState(false);
   const [showImport, setShowImport] = useState(false);
+  const [showExport, setShowExport] = useState(false);
   const [editTarget, setEditTarget] = useState<EditTeamTarget | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<AdminTeamRow | null>(null);
   const [reinstateTarget, setReinstateTarget] = useState<ReinstateTarget | null>(null);
@@ -147,6 +149,12 @@ export default function AdminDashboardPage() {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowExport(true)}
+              className="flex items-center gap-1.5 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-1.5 text-xs font-semibold text-emerald-300 transition hover:border-emerald-400 hover:bg-emerald-500/20"
+            >
+              <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-400" /> Export Excel
+            </button>
             <button onClick={loadTeams} className="flex items-center gap-1.5 rounded-lg border border-slate-700 px-3 py-1.5 text-xs text-slate-300 hover:border-slate-500">
               <RefreshCcw className="h-3.5 w-3.5" /> Refresh
             </button>
@@ -172,22 +180,30 @@ export default function AdminDashboardPage() {
             <TabButton icon={<Settings2 className="h-4 w-4" />} label="Round Control" active={tab === "settings"} onClick={() => setTab("settings")} />
             <TabButton icon={<FileCode2 className="h-4 w-4" />} label="Questions" active={tab === "questions"} onClick={() => setTab("questions")} />
           </nav>
-          {tab === "teams" && (
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setShowImport(true)}
-                className="flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3.5 py-2 text-sm font-semibold text-slate-200 transition hover:border-sky-500/50 hover:bg-slate-700"
-              >
-                <FileSpreadsheet className="h-4 w-4 text-sky-400" /> Import Google Form / CSV
-              </button>
-              <button
-                onClick={() => setShowCreate(true)}
-                className="flex items-center gap-1.5 rounded-lg bg-emerald-500 px-4 py-2 text-sm font-bold text-slate-950 transition hover:bg-emerald-400"
-              >
-                <Plus className="h-4 w-4" /> Register Team
-              </button>
-            </div>
-          )}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowExport(true)}
+              className="flex items-center gap-1.5 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3.5 py-2 text-sm font-semibold text-emerald-300 transition hover:border-emerald-400 hover:bg-emerald-500/20"
+            >
+              <FileSpreadsheet className="h-4 w-4 text-emerald-400" /> Export to Excel
+            </button>
+            {tab === "teams" && (
+              <>
+                <button
+                  onClick={() => setShowImport(true)}
+                  className="flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3.5 py-2 text-sm font-semibold text-slate-200 transition hover:border-sky-500/50 hover:bg-slate-700"
+                >
+                  <FileSpreadsheet className="h-4 w-4 text-sky-400" /> Import Google Form / CSV
+                </button>
+                <button
+                  onClick={() => setShowCreate(true)}
+                  className="flex items-center gap-1.5 rounded-lg bg-emerald-500 px-4 py-2 text-sm font-bold text-slate-950 transition hover:bg-emerald-400"
+                >
+                  <Plus className="h-4 w-4" /> Register Team
+                </button>
+              </>
+            )}
+          </div>
         </div>
 
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1fr_320px]">
@@ -255,6 +271,7 @@ export default function AdminDashboardPage() {
           onReinstated={loadTeams}
         />
       )}
+      {showExport && <ExportModal onClose={() => setShowExport(false)} />}
     </div>
   );
 }
